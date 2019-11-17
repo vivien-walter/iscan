@@ -1,1 +1,1 @@
-# iSCAN
+# iSCAN - iSCAT Image Analysis
