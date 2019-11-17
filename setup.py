@@ -1,3 +1,5 @@
+from setuptools import setup
+
 setup(
     name="iSCAN",
     version="0.1",
@@ -10,4 +12,7 @@ setup(
     install_requires=[
         "numpy", "Pillow", "PyQt5", "pims", "scipy", "matplotlib", 'seaborn'
     ],
+    entry_points = {
+        'console_scripts': ['iscan=iscan:startYU']
+    }
 )
