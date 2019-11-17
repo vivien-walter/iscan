@@ -11,14 +11,15 @@ from iscan.input_output import checkItemType
 ## SIDE BAR FOR PARTICLE TRACKING
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
+
 class interactiveBackgroundWidget(qtw.QLabel):
     def __init__(self, parent):
         super(interactiveBackgroundWidget, self).__init__(parent)
 
         # Initialise the image
         self.parent = parent
-        pathName = os.path.abspath( os.path.dirname(sys.argv[0]) )
-        imagePath = pathName + '/iscan/images/background.png'
+        pathName = os.path.abspath(os.path.dirname(sys.argv[0]))
+        imagePath = pathName + "/iscan/images/background.png"
 
         # Set the background image
         self.backgroundPixmap = qtg.QPixmap(imagePath)

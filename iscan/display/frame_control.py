@@ -39,7 +39,7 @@ class frameControlPanel(qtw.QDockWidget):
 
         # Display the panel
         self.mainWidget.setLayout(self.widgetLayout)
-        #self.widgetLayout.setSizeConstraint(qtw.QLayout.SetFixedSize)
+        # self.widgetLayout.setSizeConstraint(qtw.QLayout.SetFixedSize)
         self.setWidget(self.mainWidget)
         self.setFloating(False)
 
@@ -50,7 +50,7 @@ class frameControlPanel(qtw.QDockWidget):
         # Generate the widget
         self.zoomSettingsWidget = qtw.QWidget()
         self.zoomSettingsLayout = qtw.QGridLayout(self.zoomSettingsWidget)
-        #self.zoomSettingsWidget.setContentsMargins(0, 0, 0, 0)
+        # self.zoomSettingsWidget.setContentsMargins(0, 0, 0, 0)
 
         # Name of the panel
         currentRow = 0
@@ -64,9 +64,7 @@ class frameControlPanel(qtw.QDockWidget):
         currentRow += 1
         self.decreaseZoomButton = qtw.QPushButton(" - ")
         self.decreaseZoomButton.clicked.connect(self.decreaseZoom)
-        self.decreaseZoomButton.setStatusTip(
-            "Decrease the image scale by 5%."
-        )
+        self.decreaseZoomButton.setStatusTip("Decrease the image scale by 5%.")
         self.resetZoomButton = qtw.QPushButton("100%")
         self.resetZoomButton.clicked.connect(self.resetZoom)
         self.resetZoomButton.setStatusTip(
@@ -74,9 +72,7 @@ class frameControlPanel(qtw.QDockWidget):
         )
         self.increaseZoomButton = qtw.QPushButton(" + ")
         self.increaseZoomButton.clicked.connect(self.increaseZoom)
-        self.increaseZoomButton.setStatusTip(
-            "Increase the image scale by 5%."
-        )
+        self.increaseZoomButton.setStatusTip("Increase the image scale by 5%.")
         self.zoomSettingsLayout.addWidget(self.decreaseZoomButton, currentRow, 0, 1, 2)
         self.zoomSettingsLayout.addWidget(self.resetZoomButton, currentRow, 2, 1, 2)
         self.zoomSettingsLayout.addWidget(self.increaseZoomButton, currentRow, 4, 1, 2)
@@ -100,7 +96,7 @@ class frameControlPanel(qtw.QDockWidget):
         # Generate the widget
         self.frameNavigationWidget = qtw.QWidget()
         self.frameNavigationLayout = qtw.QGridLayout(self.frameNavigationWidget)
-        #self.frameNavigationLayout.setContentsMargins(0, 0, 0, 0)
+        # self.frameNavigationLayout.setContentsMargins(0, 0, 0, 0)
 
         # Name of the panel
         currentRow = 0
@@ -129,14 +125,10 @@ class frameControlPanel(qtw.QDockWidget):
         currentRow += 1
         self.previousFrameButton = qtw.QPushButton("<")
         self.previousFrameButton.clicked.connect(self.previousFrame)
-        self.previousFrameButton.setStatusTip(
-            "Move to the previous frame."
-        )
+        self.previousFrameButton.setStatusTip("Move to the previous frame.")
         self.nextFrameButton = qtw.QPushButton(">")
         self.nextFrameButton.clicked.connect(self.nextFrame)
-        self.nextFrameButton.setStatusTip(
-            "Move to the next frame."
-        )
+        self.nextFrameButton.setStatusTip("Move to the next frame.")
         self.frameNavigationLayout.addWidget(self.previousFrameButton, currentRow, 0)
         self.frameNavigationLayout.addWidget(self.nextFrameButton, currentRow, 1)
 
@@ -151,7 +143,7 @@ class frameControlPanel(qtw.QDockWidget):
         # Generate the widget
         self.modeSelectionWidget = qtw.QWidget()
         self.modeSelectionLayout = qtw.QVBoxLayout(self.modeSelectionWidget)
-        #self.modeSelectionLayout.setContentsMargins(0, 0, 0, 0)
+        # self.modeSelectionLayout.setContentsMargins(0, 0, 0, 0)
 
         # Name of the panel
         widgetName = qtw.QLabel("Mode Selection")
@@ -192,7 +184,7 @@ class frameControlPanel(qtw.QDockWidget):
         # Generate the widget
         self.modeOptionsWidget = qtw.QWidget()
         self.modeOptionsLayout = qtw.QVBoxLayout(self.modeOptionsWidget)
-        #self.modeOptionsLayout.setContentsMargins(0, 0, 0, 0)
+        # self.modeOptionsLayout.setContentsMargins(0, 0, 0, 0)
 
         # Name of the panel
         widgetName = qtw.QLabel("Interactions Settings")
@@ -253,7 +245,7 @@ class frameControlPanel(qtw.QDockWidget):
     ## OTHER DOCK MENU
     ##-/-/-/-/-/-/-/-/
 
-    #-------------------------------
+    # -------------------------------
     # Start the tracking docking menu
     def displayTrackingMenu(self):
 
@@ -261,13 +253,15 @@ class frameControlPanel(qtw.QDockWidget):
         trackingControlPanel(self.parent)
         self.profilingModeButton.setChecked(True)
 
-    #--------------------------------------------
+    # --------------------------------------------
     # Return the current interaction type selected
     def getInteractionType(self):
 
         # Lists
-        modes = np.array(['tracking', 'profiling'])
-        buttonState = np.array([self.trackingModeButton.isChecked(), self.profilingModeButton.isChecked()])
+        modes = np.array(["tracking", "profiling"])
+        buttonState = np.array(
+            [self.trackingModeButton.isChecked(), self.profilingModeButton.isChecked()]
+        )
 
         # Get the enabled mode
         modeIndex = np.where(buttonState == True)[0]
@@ -288,12 +282,16 @@ class frameControlPanel(qtw.QDockWidget):
         # Only change the displayed tab image
         if not sincTabs:
             tabIndex = self.parent.centralWidget.currentIndex()
-            newFrame = self.parent.imageTabsImage[tabIndex].changeFrame(increment=increment, frame=frame)
+            newFrame = self.parent.imageTabsImage[tabIndex].changeFrame(
+                increment=increment, frame=frame
+            )
 
         # Update all tabs
         else:
-            for i in range( len(self.parent.imageTabsImage) ):
-                newFrame = self.parent.imageTabsImage[i].changeFrame(increment=increment, frame=frame)
+            for i in range(len(self.parent.imageTabsImage)):
+                newFrame = self.parent.imageTabsImage[i].changeFrame(
+                    increment=increment, frame=frame
+                )
 
         # Edit the entry box with the new frame index
         self.frameSelectionEntry.setText(str(newFrame))
@@ -313,7 +311,7 @@ class frameControlPanel(qtw.QDockWidget):
 
         self.changeFrame(frame=int(frameText))
 
-    #-----------------------------------------------------
+    # -----------------------------------------------------
     # Change the zoom of the image displayed on the screen
     def changeZoom(self, factor=1.005, value=None):
 
@@ -323,12 +321,16 @@ class frameControlPanel(qtw.QDockWidget):
         # Only change the displayed tab image
         if not sincTabs:
             tabIndex = self.parent.centralWidget.currentIndex()
-            newFrame = self.parent.imageTabsImage[tabIndex].changeZoom(factor=factor, value=value)
+            newFrame = self.parent.imageTabsImage[tabIndex].changeZoom(
+                factor=factor, value=value
+            )
 
         # Update all tabs
         else:
-            for i in range( len(self.parent.imageTabsImage) ):
-                newFrame = self.parent.imageTabsImage[i].changeZoom(factor=factor, value=value)
+            for i in range(len(self.parent.imageTabsImage)):
+                newFrame = self.parent.imageTabsImage[i].changeZoom(
+                    factor=factor, value=value
+                )
 
         # Edit the entry box with the new frame index
         self.currentZoomEntry.setText(str(newFrame))
@@ -349,4 +351,4 @@ class frameControlPanel(qtw.QDockWidget):
 
         # WARNING: Insert here correction of the text if not int
 
-        self.changeZoom(value=float(frameText)/100)
+        self.changeZoom(value=float(frameText) / 100)

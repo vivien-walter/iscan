@@ -19,18 +19,19 @@ from iscan.display.profiling_control import profilingControlPanel
 ## MAIN GUI OF THE SOFTWARE
 ##-/-/-/-/-/-/-/-/-/-/-/-/
 
+
 class mainGUI(qtw.QMainWindow):
     def __init__(self):
-        super(mainGUI,self).__init__()
+        super(mainGUI, self).__init__()
 
         # Initialize the properties of the software Main GUI
-        self.title = 'iSCAT Analysis'
-        self.version = 'v0.1'
+        self.title = "iSCAT Analysis"
+        self.version = "v0.1"
         self.currentFrame = 0
 
         # Generate the display
-        self.setWindowTitle(self.title + ' ('+self.version+')')
-        self.setWindowIcon(qtg.QIcon('pythonlogo.png'))
+        self.setWindowTitle(self.title + " (" + self.version + ")")
+        self.setWindowIcon(qtg.QIcon("pythonlogo.png"))
         self.menuBar = menuBar(self)
 
         # Initialise the different control panel
@@ -49,7 +50,7 @@ class mainGUI(qtw.QMainWindow):
         self.statusBar()
         self.show()
 
-    #------------------------------------
+    # ------------------------------------
     # Create the blank background display
     def createEmptyBackground(self):
 
@@ -59,14 +60,14 @@ class mainGUI(qtw.QMainWindow):
         # Initialise the tab display
         self.setCentralWidget(self.centralWidget)
 
-    #--------------------------------
+    # --------------------------------
     # Create the control docking menu
     def createControlMenu(self):
 
         self.controlPanel = frameControlPanel("Image Control", self)
         self.addDockWidget(qtc.Qt.LeftDockWidgetArea, self.controlPanel)
 
-    #-------------------------------------
+    # -------------------------------------
     # Create the tab display to add images
     def createTabDisplay(self):
 
@@ -89,7 +90,7 @@ class mainGUI(qtw.QMainWindow):
 
         self.isTabDisplayActive = True
 
-    #-------------------------------------
+    # -------------------------------------
     # Generate the profiling dock controls
     def startProfilingMode(self):
 
@@ -100,17 +101,17 @@ class mainGUI(qtw.QMainWindow):
     ## OTHER FUNCTIONS AND STYLES
     ##-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-    #----------------------------
+    # ----------------------------
     # Define the separator widget
     def Hseparator(self):
         separator = qtw.QFrame()
         separator.setFrameShape(qtw.QFrame.HLine)
-        separator.setSizePolicy(qtw.QSizePolicy.Expanding,qtw.QSizePolicy.Minimum)
+        separator.setSizePolicy(qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Minimum)
         separator.setLineWidth(1)
 
         return separator
 
-    #----------------------------
+    # ----------------------------
     # Define the separator widget
     def Vseparator(self):
         separator = qtw.QFrame()
@@ -120,25 +121,27 @@ class mainGUI(qtw.QMainWindow):
 
         return separator
 
-    #-------------------------------------
+    # -------------------------------------
     # Add a new image tab to the interface
     def addImageTab(self, frames, name="Untitled image", minPV=None, maxPV=None):
 
         # Update the tab lists
-        self.imageTabs.append( qtw.QWidget() )
-        self.imageTabsNames.append( name )
-        self.imageTabsLayout.append( qtw.QVBoxLayout() )
-        self.imageTabsImage.append( imageWidget(self, frames, name, minPV=minPV, maxPV=maxPV) )
+        self.imageTabs.append(qtw.QWidget())
+        self.imageTabsNames.append(name)
+        self.imageTabsLayout.append(qtw.QVBoxLayout())
+        self.imageTabsImage.append(
+            imageWidget(self, frames, name, minPV=minPV, maxPV=maxPV)
+        )
 
         # Populate the tab
         self.imageTabsLayout[-1].setContentsMargins(0, 0, 0, 0)
-        self.imageTabsLayout[-1].addWidget( self.imageTabsImage[-1] )
+        self.imageTabsLayout[-1].addWidget(self.imageTabsImage[-1])
         self.imageTabs[-1].setLayout(self.imageTabsLayout[-1])
 
         # Append the tab to the window
         self.centralWidget.addTab(self.imageTabs[-1], self.imageTabsNames[-1])
 
-    #-----------------------------
+    # -----------------------------
     # Action when a tab is changed
     def tabIsChanged(self, index):
 
@@ -159,7 +162,10 @@ class mainGUI(qtw.QMainWindow):
             self.profilingPanel.populateTable()
 
         # Close the statistic display if on and no profile are in memory
-        if self.statisticWindow is not None and len(self.imageTabsImage[index].savedData) == 0:
+        if (
+            self.statisticWindow is not None
+            and len(self.imageTabsImage[index].savedData) == 0
+        ):
             self.statisticWindow.close()
 
         # Close the statistic display if on and no profile are in memory
@@ -171,7 +177,7 @@ class mainGUI(qtw.QMainWindow):
 ## PUBLIC FUNCTION
 ##-/-/-/-/-/-/-/-/
 
-#--------------------------------------
+# --------------------------------------
 # Call the main display of the software
 def createMainUI():
     main_application = qtw.QApplication([])

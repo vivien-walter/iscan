@@ -10,6 +10,7 @@ from iscan.image_handling import imageCorrection
 ## SIDE BAR FOR PARTICLE TRACKING
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
+
 class backgroundCorrectionPanel(qtw.QMainWindow):
     def __init__(self, parent):
         super(backgroundCorrectionPanel, self).__init__(parent)
@@ -19,7 +20,7 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
 
         self.mainWidget = qtw.QWidget()
         self.widgetLayout = qtw.QVBoxLayout(self.mainWidget)
-        self.setWindowTitle('Background Correction')
+        self.setWindowTitle("Background Correction")
 
         # Populate the panel
         self.createCorrectionSettings(self.widgetLayout)
@@ -33,13 +34,13 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         self.setCentralWidget(self.mainWidget)
         self.show()
 
-    #---------------------------------------------------
+    # ---------------------------------------------------
     # Reinitialise the display when the window is closed
     def closeEvent(self, event):
         event.accept()
         self.parent.correctionWindow = None
 
-    #----------------------------------------------------
+    # ----------------------------------------------------
     # Generate the settings for the background correction
     def createCorrectionSettings(self, parentWidget):
 
@@ -59,8 +60,8 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         currentRow += 1
         averageLabel = qtw.QLabel("Average Type")
         self.averageComboBox = qtw.QComboBox()
-        self.averageComboBox.addItem('Median')
-        self.averageComboBox.addItem('Mean')
+        self.averageComboBox.addItem("Median")
+        self.averageComboBox.addItem("Mean")
         self.averageComboBox.setStatusTip(
             "Select the type of average to calculate the image average."
         )
@@ -71,8 +72,8 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         currentRow += 1
         correctionLabel = qtw.QLabel("Correction Type")
         self.correctionComboBox = qtw.QComboBox()
-        self.correctionComboBox.addItem('Division')
-        self.correctionComboBox.addItem('Subtraction')
+        self.correctionComboBox.addItem("Division")
+        self.correctionComboBox.addItem("Subtraction")
         self.correctionComboBox.setStatusTip(
             "Select the type of background correction to compute."
         )
@@ -83,7 +84,7 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         self.correctionSettingsWidget.setLayout(self.correctionSettingsLayout)
         parentWidget.addWidget(self.correctionSettingsWidget)
 
-    #-----------------------------------
+    # -----------------------------------
     # Generate the settings of the image
     def createImageSettings(self, parentWidget):
 
@@ -103,13 +104,11 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         currentRow += 1
         bitDepthLabel = qtw.QLabel("Bit Depth")
         self.bitDepthComboBox = qtw.QComboBox()
-        self.bitDepthComboBox.addItem('16-bit')
-        self.bitDepthComboBox.addItem('12-bit')
-        self.bitDepthComboBox.addItem('10-bit')
-        self.bitDepthComboBox.addItem('8-bit')
-        self.bitDepthComboBox.setStatusTip(
-            "Select the camera bit depth."
-        )
+        self.bitDepthComboBox.addItem("16-bit")
+        self.bitDepthComboBox.addItem("12-bit")
+        self.bitDepthComboBox.addItem("10-bit")
+        self.bitDepthComboBox.addItem("8-bit")
+        self.bitDepthComboBox.setStatusTip("Select the camera bit depth.")
         self.imageSettingsLayout.addWidget(bitDepthLabel, currentRow, 0)
         self.imageSettingsLayout.addWidget(self.bitDepthComboBox, currentRow, 1)
 
@@ -120,7 +119,7 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         self.signedCheckBox.setStatusTip(
             "Specify if the pixel values are taken from a signed bit depth."
         )
-        self.imageSettingsLayout.addWidget(self.signedCheckBox, currentRow, 0, 1 , -1)
+        self.imageSettingsLayout.addWidget(self.signedCheckBox, currentRow, 0, 1, -1)
 
         # Display the widget
         self.imageSettingsWidget.setLayout(self.imageSettingsLayout)
@@ -137,16 +136,12 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         # Auto contrast and histogram crop
         self.processButton = qtw.QPushButton("Process")
         self.processButton.clicked.connect(self.runBackgroundCorrection)
-        self.processButton.setStatusTip(
-            "Process the image correction."
-        )
+        self.processButton.setStatusTip("Process the image correction.")
         self.correctionActionsLayout.addWidget(self.processButton)
 
         self.closeButton = qtw.QPushButton("Close")
         self.closeButton.clicked.connect(self.close)
-        self.closeButton.setStatusTip(
-            "Close the current window."
-        )
+        self.closeButton.setStatusTip("Close the current window.")
         self.correctionActionsLayout.addWidget(self.closeButton)
 
         # Display the widget
@@ -157,7 +152,7 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
     ## START THE BACKGROUND CORRECTION
     ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-    #---------------------------------------------------
+    # ---------------------------------------------------
     # Run the background correction on the current image
     def runBackgroundCorrection(self):
 
@@ -168,17 +163,23 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         signedBits = self.signedCheckBox.isChecked()
 
         # Prepare the process parameters
-        bitDepth = int(bitDepth.split('-')[0])
+        bitDepth = int(bitDepth.split("-")[0])
 
         # Process the image correction
         tabIndex = self.parent.centralWidget.currentIndex()
-        previousArray = np.array( self.parent.imageTabsImage[tabIndex].array )
-        newArray = imageCorrection(previousArray, averageType=averageType, correctionType=correctionType, bitDepth = bitDepth, signedBits=signedBits)
+        previousArray = np.array(self.parent.imageTabsImage[tabIndex].array)
+        newArray = imageCorrection(
+            previousArray,
+            averageType=averageType,
+            correctionType=correctionType,
+            bitDepth=bitDepth,
+            signedBits=signedBits,
+        )
 
         # Create a new tab with the image
-        newName = self.parent.imageTabsImage[tabIndex].name + '_corrected'
-        self.parent.addImageTab(newArray, name=newName, minPV=.5, maxPV=1.5)
-        self.parent.centralWidget.setCurrentIndex(self.parent.centralWidget.count()-1)
+        newName = self.parent.imageTabsImage[tabIndex].name + "_corrected"
+        self.parent.addImageTab(newArray, name=newName, minPV=0.5, maxPV=1.5)
+        self.parent.centralWidget.setCurrentIndex(self.parent.centralWidget.count() - 1)
 
         # Close the window at the end
         self.close()

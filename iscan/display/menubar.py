@@ -12,6 +12,7 @@ from iscan.input_output import saveProfiles, openFolder, openFile
 ## MENUBAR OF THE MAIN GUI
 ##-/-/-/-/-/-/-/-/-/-/-/-/
 
+
 class menuBar:
     def __init__(self, parent):
 
@@ -25,99 +26,129 @@ class menuBar:
         self.createImageMenu()
         self.createProfileMenu()
 
-    #--------------------------
+    # --------------------------
     # Generate the FILE submenu
     def createFileMenu(self):
 
         # Initialise
-        self.fileMenu = self.mainMenu.addMenu('File')
+        self.fileMenu = self.mainMenu.addMenu("File")
 
         # Load a folder
-        self.fileMenu.loadFolderButton = qtw.QAction('Open Folder', self.parent)
-        self.fileMenu.loadFolderButton.setShortcut('Ctrl+O')
-        self.fileMenu.loadFolderButton.setStatusTip('Load and process an image folder.')
+        self.fileMenu.loadFolderButton = qtw.QAction("Open Folder", self.parent)
+        self.fileMenu.loadFolderButton.setShortcut("Ctrl+O")
+        self.fileMenu.loadFolderButton.setStatusTip("Load and process an image folder.")
         self.fileMenu.loadFolderButton.triggered.connect(self.callOpenFolder)
         self.fileMenu.addAction(self.fileMenu.loadFolderButton)
 
         # Load a file
-        self.fileMenu.loadFileButton = qtw.QAction('Open Image', self.parent)
-        self.fileMenu.loadFileButton.setShortcut('Ctrl+Shift+O')
-        self.fileMenu.loadFileButton.setStatusTip('Load and process an image folder.')
+        self.fileMenu.loadFileButton = qtw.QAction("Open Image", self.parent)
+        self.fileMenu.loadFileButton.setShortcut("Ctrl+Shift+O")
+        self.fileMenu.loadFileButton.setStatusTip("Load and process an image folder.")
         self.fileMenu.loadFileButton.triggered.connect(self.callOpenFile)
         self.fileMenu.addAction(self.fileMenu.loadFileButton)
 
         self.fileMenu.addSeparator()
 
         # Quit the software
-        self.fileMenu.closeButton = qtw.QAction('Quit', self.parent)
-        self.fileMenu.closeButton.setShortcut('Ctrl+Q')
-        self.fileMenu.closeButton.setStatusTip('Close the software.')
+        self.fileMenu.closeButton = qtw.QAction("Quit", self.parent)
+        self.fileMenu.closeButton.setShortcut("Ctrl+Q")
+        self.fileMenu.closeButton.setStatusTip("Close the software.")
         self.fileMenu.closeButton.triggered.connect(qtw.qApp.quit)
         self.fileMenu.addAction(self.fileMenu.closeButton)
 
-    #--------------------------
+    # --------------------------
     # Generate the IMAGE submenu
     def createImageMenu(self):
 
         # Initialise
-        self.imageMenu = self.mainMenu.addMenu('Image')
+        self.imageMenu = self.mainMenu.addMenu("Image")
 
         # Background correct the image
-        self.imageMenu.imageCorrectionButton = qtw.QAction('Background Correction', self.parent)
-        self.imageMenu.imageCorrectionButton.setShortcut('Shift+C')
-        self.imageMenu.imageCorrectionButton.setStatusTip('Apply a background correction to the image.')
-        self.imageMenu.imageCorrectionButton.triggered.connect(self.callCorrectionWindow)
+        self.imageMenu.imageCorrectionButton = qtw.QAction(
+            "Background Correction", self.parent
+        )
+        self.imageMenu.imageCorrectionButton.setShortcut("Shift+C")
+        self.imageMenu.imageCorrectionButton.setStatusTip(
+            "Apply a background correction to the image."
+        )
+        self.imageMenu.imageCorrectionButton.triggered.connect(
+            self.callCorrectionWindow
+        )
         self.imageMenu.addAction(self.imageMenu.imageCorrectionButton)
 
         # Adjust the contrast
-        self.imageMenu.adjustContrastButton = qtw.QAction('Adjust Contrast', self.parent)
-        self.imageMenu.adjustContrastButton.setShortcut('Ctrl+Shift+C')
-        self.imageMenu.adjustContrastButton.setStatusTip('Adjust the brightness and contrast of the image.')
+        self.imageMenu.adjustContrastButton = qtw.QAction(
+            "Adjust Contrast", self.parent
+        )
+        self.imageMenu.adjustContrastButton.setShortcut("Ctrl+Shift+C")
+        self.imageMenu.adjustContrastButton.setStatusTip(
+            "Adjust the brightness and contrast of the image."
+        )
         self.imageMenu.adjustContrastButton.triggered.connect(self.callContrastWindow)
         self.imageMenu.addAction(self.imageMenu.adjustContrastButton)
 
         self.imageMenu.addSeparator()
 
         # Quit the software
-        self.imageMenu.closeTabButton = qtw.QAction('Close Current Tab', self.parent)
-        self.imageMenu.closeTabButton.setStatusTip('Close the current tab displayed on the screen.')
+        self.imageMenu.closeTabButton = qtw.QAction("Close Current Tab", self.parent)
+        self.imageMenu.closeTabButton.setStatusTip(
+            "Close the current tab displayed on the screen."
+        )
         self.imageMenu.closeTabButton.triggered.connect(self.closeCurrentTab)
         self.imageMenu.addAction(self.imageMenu.closeTabButton)
 
-    #--------------------------
+    # --------------------------
     # Generate the PROFILE submenu
     def createProfileMenu(self):
 
         # Initialise
-        self.profileMenu = self.mainMenu.addMenu('Profiles')
+        self.profileMenu = self.mainMenu.addMenu("Profiles")
 
         # Analyse the stats
-        self.profileMenu.analyseProfilesButton = qtw.QAction('Profiles Statistics', self.parent)
-        self.profileMenu.analyseProfilesButton.setStatusTip('Analyse the profiles stored in memory.')
-        self.profileMenu.analyseProfilesButton.triggered.connect(self.callStatisticsDisplay)
+        self.profileMenu.analyseProfilesButton = qtw.QAction(
+            "Profiles Statistics", self.parent
+        )
+        self.profileMenu.analyseProfilesButton.setStatusTip(
+            "Analyse the profiles stored in memory."
+        )
+        self.profileMenu.analyseProfilesButton.triggered.connect(
+            self.callStatisticsDisplay
+        )
         self.profileMenu.addAction(self.profileMenu.analyseProfilesButton)
 
         self.profileMenu.addSeparator()
 
         # Save all the profiles
-        self.profileMenu.saveTableButton = qtw.QAction('Save Profiles Table', self.parent)
-        self.profileMenu.saveTableButton.setShortcut('Ctrl+S')
-        self.profileMenu.saveTableButton.setStatusTip('Save the table of results in a .csv file.')
+        self.profileMenu.saveTableButton = qtw.QAction(
+            "Save Profiles Table", self.parent
+        )
+        self.profileMenu.saveTableButton.setShortcut("Ctrl+S")
+        self.profileMenu.saveTableButton.setStatusTip(
+            "Save the table of results in a .csv file."
+        )
         self.profileMenu.saveTableButton.triggered.connect(self.callSaveProfileTable)
         self.profileMenu.addAction(self.profileMenu.saveTableButton)
 
         # Save all the profiles
-        self.profileMenu.saveProfilesButton = qtw.QAction('Save Profile Plots', self.parent)
-        self.profileMenu.saveProfilesButton.setShortcut('Ctrl+Shift+S')
-        self.profileMenu.saveProfilesButton.setStatusTip('Save all the profiles in separated .csv files.')
+        self.profileMenu.saveProfilesButton = qtw.QAction(
+            "Save Profile Plots", self.parent
+        )
+        self.profileMenu.saveProfilesButton.setShortcut("Ctrl+Shift+S")
+        self.profileMenu.saveProfilesButton.setStatusTip(
+            "Save all the profiles in separated .csv files."
+        )
         self.profileMenu.saveProfilesButton.triggered.connect(self.callSaveAllProfiles)
         self.profileMenu.addAction(self.profileMenu.saveProfilesButton)
 
         self.profileMenu.addSeparator()
 
         # Save all the profiles
-        self.profileMenu.eraseProfilesButton = qtw.QAction('Delete Profiles', self.parent)
-        self.profileMenu.eraseProfilesButton.setStatusTip('Delete all the profiles from the current image.')
+        self.profileMenu.eraseProfilesButton = qtw.QAction(
+            "Delete Profiles", self.parent
+        )
+        self.profileMenu.eraseProfilesButton.setStatusTip(
+            "Delete all the profiles from the current image."
+        )
         self.profileMenu.eraseProfilesButton.triggered.connect(self.callDeleteData)
         self.profileMenu.addAction(self.profileMenu.eraseProfilesButton)
 
@@ -125,17 +156,17 @@ class menuBar:
     ## FUNCTIONS USED IN THE MENU BAR
     ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-    #-------------------------
+    # -------------------------
     # Open the selected folder
     def callOpenFolder(self):
         openFolder(self.parent)
 
-    #-----------------------
+    # -----------------------
     # Open the selected file
     def callOpenFile(self):
         openFile(self.parent)
 
-    #--------------------------------------
+    # --------------------------------------
     # Display the contrast correction window
     def callCorrectionWindow(self):
 
@@ -148,7 +179,7 @@ class menuBar:
         if self.parent.correctionWindow is None:
             self.parent.correctionWindow = backgroundCorrectionPanel(self.parent)
 
-    #--------------------------------------
+    # --------------------------------------
     # Display the contrast correction window
     def callContrastWindow(self):
 
@@ -161,7 +192,7 @@ class menuBar:
         if self.parent.contrastWindow is None:
             self.parent.contrastWindow = contrastSettingsPanel(self.parent)
 
-    #----------------------------------------------
+    # ----------------------------------------------
     # Close the current tab and refresh the display
     def closeCurrentTab(self):
 
@@ -204,7 +235,7 @@ class menuBar:
             # Reload the default background
             self.parent.createEmptyBackground()
 
-    #------------------------------
+    # ------------------------------
     # Save all profiles in the table
     def callSaveProfileTable(self):
 
@@ -228,7 +259,7 @@ class menuBar:
         else:
             self.parent.profilingPanel.saveTableInFile()
 
-    #--------------------------------------
+    # --------------------------------------
     # Display the contrast correction window
     def callStatisticsDisplay(self):
 
@@ -240,7 +271,7 @@ class menuBar:
         if self.parent.statisticWindow is None:
             self.parent.statisticWindow = profilesAnalysisPanel(self.parent)
 
-    #--------------------------------
+    # --------------------------------
     # Save all profiles in the memory
     def callSaveAllProfiles(self):
 
@@ -267,7 +298,7 @@ class menuBar:
         else:
             saveProfiles(self.parent, self.parent.imageTabsImage[tabIndex].savedData)
 
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     # Delete all the saved profiles and data from the memory
     def callDeleteData(self):
 
@@ -290,7 +321,7 @@ class menuBar:
             self.parent.profilingPanel.populateTable()
             currentImage.updateArrays()
 
-    #---------------------------------------------------
+    # ---------------------------------------------------
     # Display the error message when no image are opened
     def noImageErrorMessage(self):
 

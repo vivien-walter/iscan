@@ -8,10 +8,21 @@ import iscan.math_functions as mfunc
 ## INTENSITY PROFILES AND FIT
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-#-----------------------------------
+# -----------------------------------
 # Class to handle intensity profiles
 class iScatSignal:
-    def __init__(self, dataName, imageValues, frameNumber, positionAndSetup, fitType, fitParams, fitErrors, signal, fittedSignal):
+    def __init__(
+        self,
+        dataName,
+        imageValues,
+        frameNumber,
+        positionAndSetup,
+        fitType,
+        fitParams,
+        fitErrors,
+        signal,
+        fittedSignal,
+    ):
 
         # General informations
         self.name = dataName
@@ -19,7 +30,14 @@ class iScatSignal:
         self.fit = fitType
 
         # Image values
-        self.contrast, self.contrastErr, self.noise, self.noiseErr, self.snr, self.snrErr = imageValues
+        (
+            self.contrast,
+            self.contrastErr,
+            self.noise,
+            self.noiseErr,
+            self.snr,
+            self.snrErr,
+        ) = imageValues
 
         # Profile position
         self.x, self.y, self.angle, self.length = positionAndSetup
@@ -32,31 +50,31 @@ class iScatSignal:
         self.distance, self.profile = signal
         self.distanceFit, self.profileFit = fittedSignal
 
-    #------------------------------------
+    # ------------------------------------
     # Return the data to use in the table
     def getData(self):
 
         dataList = [
-        self.name,
-        self.contrast,
-        self.contrastErr,
-        self.noise,
-        self.noiseErr,
-        self.snr,
-        self.snrErr,
-        self.x,
-        self.y,
-        self.angle,
-        self.length,
-        self.fit,
-        self.amplitude,
-        self.aErr,
-        self.center,
-        self.cErr,
-        self.width,
-        self.wErr,
-        self.offset,
-        self.oErr
+            self.name,
+            self.contrast,
+            self.contrastErr,
+            self.noise,
+            self.noiseErr,
+            self.snr,
+            self.snrErr,
+            self.x,
+            self.y,
+            self.angle,
+            self.length,
+            self.fit,
+            self.amplitude,
+            self.aErr,
+            self.center,
+            self.cErr,
+            self.width,
+            self.wErr,
+            self.offset,
+            self.oErr,
         ]
 
         return dataList

@@ -5,7 +5,8 @@ import PyQt5.QtWidgets as qtw
 ## SIDE BAR FOR PARTICLE TRACKING
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-class trackingControlPanel:#(qtw.QDockWidget):
+
+class trackingControlPanel:  # (qtw.QDockWidget):
     def __init__(self, parent):
 
         # Initialise the menu bar
@@ -15,8 +16,10 @@ class trackingControlPanel:#(qtw.QDockWidget):
         msg.setIcon(qtw.QMessageBox.Warning)
 
         msg.setText("ERROR: Function(s) unavailable")
-        msg.setInformativeText("""The tracking function(s) has not been implemented yet.
-Please check if a more recent version of this software has been released.""")
+        msg.setInformativeText(
+            """The tracking function(s) has not been implemented yet.
+Please check if a more recent version of this software has been released."""
+        )
         msg.setWindowTitle("ERROR")
         msg.setStandardButtons(qtw.QMessageBox.Ok)
 

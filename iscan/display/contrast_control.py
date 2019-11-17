@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 sns.set(style="darkgrid")
-sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 1.})
+sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 1.0})
 
 import PyQt5.QtCore as qtc
 import PyQt5.QtGui as qtg
@@ -14,6 +15,7 @@ from iscan.image_handling import getPixelValueDistribution
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
 ## SIDE BAR FOR PARTICLE TRACKING
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+
 
 class contrastSettingsPanel(qtw.QMainWindow):
     def __init__(self, parent):
@@ -27,13 +29,20 @@ class contrastSettingsPanel(qtw.QMainWindow):
         self.array = self.parent.imageTabsImage[tabIndex].currentArray
 
         # Get the distribution
-        self.pixelValues, self.histogramData, self.initialLimits = getPixelValueDistribution( self.array )
-        self.initialPositions = ( self.parent.imageTabsImage[tabIndex].minPV, self.parent.imageTabsImage[tabIndex].maxPV )
+        (
+            self.pixelValues,
+            self.histogramData,
+            self.initialLimits,
+        ) = getPixelValueDistribution(self.array)
+        self.initialPositions = (
+            self.parent.imageTabsImage[tabIndex].minPV,
+            self.parent.imageTabsImage[tabIndex].maxPV,
+        )
         self.autoContrastAttempt = 0
 
         self.mainWidget = qtw.QWidget()
         self.widgetLayout = qtw.QVBoxLayout(self.mainWidget)
-        self.setWindowTitle('Contrast Correction')
+        self.setWindowTitle("Contrast Correction")
 
         # Populate the panel
         self.createHistogramDisplay(self.widgetLayout)
@@ -50,13 +59,13 @@ class contrastSettingsPanel(qtw.QMainWindow):
 
         self.show()
 
-    #---------------------------------------------------
+    # ---------------------------------------------------
     # Reinitialise the display when the window is closed
     def closeEvent(self, event):
         event.accept()
         self.parent.contrastWindow = None
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # Generate the pixel value histogram for the contrast adjustment
     def createHistogramDisplay(self, parentWidget):
 
@@ -72,7 +81,7 @@ class contrastSettingsPanel(qtw.QMainWindow):
         self.histogramDisplayLayout.addWidget(widgetName)
 
         # Histogram in a matplotlib figure
-        self.histogramFigure = plt.Figure(figsize=(3,2), dpi=50)
+        self.histogramFigure = plt.Figure(figsize=(3, 2), dpi=50)
         self.histogramCanvas = FigureCanvas(self.histogramFigure)
         self.histogramCanvas.setStatusTip(
             "Distribution of the pixel values of the image."
@@ -83,7 +92,7 @@ class contrastSettingsPanel(qtw.QMainWindow):
         self.histogramDisplayWidget.setLayout(self.histogramDisplayLayout)
         parentWidget.addWidget(self.histogramDisplayWidget)
 
-    #---------------------------------------------
+    # ---------------------------------------------
     # Generate the control for the intensity limits
     def createLimitControl(self, parentWidget):
 
@@ -99,14 +108,24 @@ class contrastSettingsPanel(qtw.QMainWindow):
         self.limitControlLayout.addWidget(widgetName)
 
         # Sliders
-        self.minIntensitySlider = QLogSlider(qtc.Qt.Horizontal, position=self.initialPositions[0], min=self.initialLimits[0], max=self.initialLimits[1])
+        self.minIntensitySlider = QLogSlider(
+            qtc.Qt.Horizontal,
+            position=self.initialPositions[0],
+            min=self.initialLimits[0],
+            max=self.initialLimits[1],
+        )
         self.minIntensitySlider.valueChanged.connect(self.changeMinimum)
         self.minIntensitySlider.setStatusTip(
             "Modify the minimal pixel value displayed to rescale the image contrast."
         )
         self.limitControlLayout.addWidget(self.minIntensitySlider)
 
-        self.maxIntensitySlider = QLogSlider(qtc.Qt.Horizontal, position=self.initialPositions[1], min=self.initialLimits[0], max=self.initialLimits[1])
+        self.maxIntensitySlider = QLogSlider(
+            qtc.Qt.Horizontal,
+            position=self.initialPositions[1],
+            min=self.initialLimits[0],
+            max=self.initialLimits[1],
+        )
         self.maxIntensitySlider.valueChanged.connect(self.changeMaximum)
         self.maxIntensitySlider.setStatusTip(
             "Modify the maximal pixel value displayed to rescale the image contrast."
@@ -149,9 +168,7 @@ class contrastSettingsPanel(qtw.QMainWindow):
         )
         self.closeWindowButton = qtw.QPushButton("Close")
         self.closeWindowButton.clicked.connect(self.close)
-        self.closeWindowButton.setStatusTip(
-            "Close the current sub-window."
-        )
+        self.closeWindowButton.setStatusTip("Close the current sub-window.")
         self.contrastActionsLayout.addWidget(self.resetHistogramButton, currentRow, 0)
         self.contrastActionsLayout.addWidget(self.closeWindowButton, currentRow, 1)
 
@@ -163,7 +180,7 @@ class contrastSettingsPanel(qtw.QMainWindow):
     ## GRAPHIC DISPLAY AND CONTROL
     ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-    #-------------------------------------------
+    # -------------------------------------------
     # Generate the graph when the window is open
     def initialiseHistogram(self):
 
@@ -172,19 +189,23 @@ class contrastSettingsPanel(qtw.QMainWindow):
         self.histogramAxis.clear()
 
         # Set up the figure and axis
-        self.histogramFigure.subplots_adjust(0,0,1,1)
+        self.histogramFigure.subplots_adjust(0, 0, 1, 1)
 
-        self.histogramAxis.tick_params(axis='x',which='both',bottom=False,top=False,labelbottom=False)
-        self.histogramAxis.tick_params(axis='y',which='both',left=False,right=False,labelleft=False)
+        self.histogramAxis.tick_params(
+            axis="x", which="both", bottom=False, top=False, labelbottom=False
+        )
+        self.histogramAxis.tick_params(
+            axis="y", which="both", left=False, right=False, labelleft=False
+        )
 
         # Save default values
         self.currentLimits = self.initialLimits
-        self.initialHistogramData = np.copy( self.histogramData )
+        self.initialHistogramData = np.copy(self.histogramData)
 
         # Plot the histogram
         self.plotHistogram()
 
-    #---------------------
+    # ---------------------
     # Update the histogram
     def plotHistogram(self, limits=None):
 
@@ -195,12 +216,14 @@ class contrastSettingsPanel(qtw.QMainWindow):
         # Plot the distribution
         self.histogramAxis.clear()
 
-        self.histogramAxis.fill_between(self.histogramData[1], 0, self.histogramData[0], color='b')
-        self.histogramAxis.axvline(x=limits[0], color='r')
-        self.histogramAxis.axvline(x=limits[1], color='r')
+        self.histogramAxis.fill_between(
+            self.histogramData[1], 0, self.histogramData[0], color="b"
+        )
+        self.histogramAxis.axvline(x=limits[0], color="r")
+        self.histogramAxis.axvline(x=limits[1], color="r")
         self.histogramAxis.set_xlim(self.currentLimits)
-        self.histogramAxis.set_yscale('log')
-        self.histogramAxis.set_xscale('log')
+        self.histogramAxis.set_yscale("log")
+        self.histogramAxis.set_xscale("log")
 
         # Refresh the canvas
         self.histogramCanvas.draw()
@@ -209,13 +232,18 @@ class contrastSettingsPanel(qtw.QMainWindow):
         tabIndex = self.parent.centralWidget.currentIndex()
         currentFrame = self.parent.imageTabsImage[tabIndex].currentFrame
         currentZoom = self.parent.imageTabsImage[tabIndex].zoom
-        self.parent.imageTabsImage[tabIndex].updateArrays(frameNumber=currentFrame, minPV=limits[0], maxPV=limits[1], zoomValue=currentZoom)
+        self.parent.imageTabsImage[tabIndex].updateArrays(
+            frameNumber=currentFrame,
+            minPV=limits[0],
+            maxPV=limits[1],
+            zoomValue=currentZoom,
+        )
 
     ##-\-\-\-\-\-\-\-\-\-\-\-\
     ## CONTROLS CONFIGURATIONS
     ##-/-/-/-/-/-/-/-/-/-/-/-/
 
-    #-----------------------------------------------
+    # -----------------------------------------------
     # Update the limits of the intensity for display
     def changeLimits(self):
 
@@ -231,7 +259,7 @@ class contrastSettingsPanel(qtw.QMainWindow):
         minValue = self.minIntensitySlider.value()
         maxValue = self.maxIntensitySlider.value()
         if minValue >= maxValue:
-            self.minIntensitySlider.setValue( maxValue - 1 )
+            self.minIntensitySlider.setValue(maxValue - 1)
 
         # Change the limits
         self.changeLimits()
@@ -242,12 +270,12 @@ class contrastSettingsPanel(qtw.QMainWindow):
         minValue = self.minIntensitySlider.value()
         maxValue = self.maxIntensitySlider.value()
         if maxValue <= minValue:
-            self.maxIntensitySlider.setValue( minValue + 1 )
+            self.maxIntensitySlider.setValue(minValue + 1)
 
         # Change the limits
         self.changeLimits()
 
-    #---------------------------------
+    # ---------------------------------
     # Guess the contrast automatically
     def autoContrast(self):
 
@@ -261,14 +289,11 @@ class contrastSettingsPanel(qtw.QMainWindow):
         if currentAttempt < 5:
 
             # Calculate the factor for the standard deviation
-            factorList = [0, 3, 2, 1, .5]
+            factorList = [0, 3, 2, 1, 0.5]
             factor = factorList[currentAttempt]
 
             # Calculate the limits
-            limits = [
-            10**( mean - factor*stdev ),
-            10**( mean + factor*stdev )
-            ]
+            limits = [10 ** (mean - factor * stdev), 10 ** (mean + factor * stdev)]
 
         # Cover the whole histogram
         elif currentAttempt == 5:
@@ -283,18 +308,18 @@ class contrastSettingsPanel(qtw.QMainWindow):
         # Update the graph and image
         self.plotHistogram(limits=limits)
 
-    #---------------------------
+    # ---------------------------
     # Crop the histogram display
     def cropHistogram(self):
 
         # Crop to the size fixed by the sliders
         self.currentLimits = [
-        self.minIntensitySlider.realValue(),
-        self.maxIntensitySlider.realValue()
+            self.minIntensitySlider.realValue(),
+            self.maxIntensitySlider.realValue(),
         ]
         self.plotHistogram()
 
-    #----------------
+    # ----------------
     # Reset histogram
     def resetHistogram(self):
 
@@ -304,9 +329,11 @@ class contrastSettingsPanel(qtw.QMainWindow):
         # Update the graph and image to the initial values
         self.plotHistogram(limits=self.initialPositions)
 
+
 ##-\-\-\-\-\-\-\-\-\
 ## LOG SCALE SLIDERS
 ##-/-/-/-/-/-/-/-/-/
+
 
 class QLogSlider(qtw.QSlider):
     def __init__(self, form, position=1, min=1, max=100, factor=1000):
@@ -320,7 +347,10 @@ class QLogSlider(qtw.QSlider):
         # Optimise the factor for 1000 values
         isScaled = False
         while isScaled == False:
-            self.scaledLogMin, self.scaledLogMax = self.logMin * factor, self.logMax * factor
+            self.scaledLogMin, self.scaledLogMax = (
+                self.logMin * factor,
+                self.logMax * factor,
+            )
             steps = self.scaledLogMax - self.scaledLogMin
             if steps > 5000:
                 factor /= 10
@@ -338,10 +368,10 @@ class QLogSlider(qtw.QSlider):
         self.setMaximum(self.scaledLogMax)
         self.setValue(self.scaledLogPosition)
 
-    #------------------
+    # ------------------
     # Return the values
     def logValue(self):
         return self.value() / self.factor
 
     def realValue(self):
-        return 10**(self.value() / self.factor)
+        return 10 ** (self.value() / self.factor)
