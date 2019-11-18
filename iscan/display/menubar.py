@@ -201,8 +201,23 @@ class menuBar:
             self.noImageErrorMessage()
             return 0
 
-        # Close the current tab
+        # Check if data are in the memory of the current tab
         tabIndex = self.parent.centralWidget.currentIndex()
+        if len(self.parent.imageTabsImage[tabIndex].savedData) > 0:
+
+            msg = qtw.QMessageBox()
+            msg.setIcon(qtw.QMessageBox.Warning)
+            msg.setText("WARNING: Data in the memory")
+            msg.setInformativeText("""Data have been saved on this tab. Closing the tab will erase these data.
+Are you sure you want to close the tab and lose the data?""")
+            msg.setWindowTitle("WARNING")
+            msg.setStandardButtons(qtw.QMessageBox.Ok | qtw.QMessageBox.Cancel)
+            returnValue = msg.exec_()
+
+            if returnValue == qtw.QMessageBox.Cancel:
+                return 0
+
+        # Close the current tab
         self.parent.centralWidget.removeTab(tabIndex)
         del self.parent.imageTabsImage[tabIndex]
         del self.parent.imageTabsLayout[tabIndex]
