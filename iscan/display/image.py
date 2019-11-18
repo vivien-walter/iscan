@@ -272,7 +272,14 @@ class imageWidget(qtw.QWidget):
 
             # Recalculate the position if required
             if self.parent.controlPanel.autoPositionCheckBox.isChecked():
-                mousePosition = img.positionAdjustment(self.currentArray, mousePosition)
+                try:
+                    brightSpot = self.parent.controlPanel.brightSpotCheckBox.isChecked()
+                    mousePosition = img.positionAdjustment(self.currentArray, mousePosition, brightSpot=brightSpot)
+                except:
+                    pass
 
             # Update the profile menu
-            self.parent.profilingPanel.updateOnClick(mousePosition, self.arrayToDisplay)
+            try:
+                self.parent.profilingPanel.updateOnClick(mousePosition, self.arrayToDisplay)
+            except:
+                pass

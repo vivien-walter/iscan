@@ -53,7 +53,7 @@ def gauss2D(xy, amplitude, xc, yc, sigma_x, sigma_y, theta, offset):
 
 # ----------------
 # 2D Gaussian fit
-def gaussian2DFit(imageArray):
+def gaussian2DFit(imageArray, brightSpot=True):
 
     # Create x and y indices
     x = np.arange(0, imageArray.shape[0])
@@ -61,13 +61,18 @@ def gaussian2DFit(imageArray):
     x, y = np.meshgrid(x, y)
 
     # Iniitalise the parameters
-    a = np.amax(imageArray)
+    if brightSpot:
+        a = np.amax(imageArray)
+    else:
+        a = np.amin(imageArray)
+
     xc = imageArray.shape[0] / 2
     yc = imageArray.shape[1] / 2
-    sx = 5
-    sy = 5
+    sx = 20
+    sy = 20
     theta = 1
     y0 = 1
+    a -= y0
 
     # Fit the data
     popt, pcov = curve_fit(
@@ -217,21 +222,32 @@ def circleAndLineComputation(
 
 # -------------------------------------------------
 # Initialise the parameters for the different fits
-def initialiseParameters(x, y):
+def initialiseParameters(x, y, brightSpot=True):
 
     # Offset calculation
     scanLim = int(y.shape[0] / 8)
     offset = np.mean(np.array([y[0:scanLim], y[-scanLim::]]))
 
-    # Amplitude calculation
-    amplitude = np.amax(y[3 * scanLim : 5 * scanLim]) - offset
+    # Calculation for bright spot
+    if brightSpot:
 
-    # Center calculation
-    center = x[3 * scanLim : 5 * scanLim][np.argmax(y[3 * scanLim : 5 * scanLim])]
+        # Amplitude calculation
+        amplitude = np.amax(y[3 * scanLim : 5 * scanLim]) - offset
+
+        # Center calculation
+        center = x[3 * scanLim : 5 * scanLim][np.argmax(y[3 * scanLim : 5 * scanLim])]
+
+    else:
+
+        # Amplitude calculation
+        amplitude = np.amin(y[3 * scanLim : 5 * scanLim]) - offset
+
+        # Center calculation
+        center = x[3 * scanLim : 5 * scanLim][np.argmin(y[3 * scanLim : 5 * scanLim])]
 
     # Width calculation
     halfMax = (amplitude / 2) + offset
-    halfedArray = y[4 * scanLim : :] - halfMax
+    halfedArray = abs(y[4 * scanLim : :] - halfMax)
     width = x[4 * scanLim : :][np.argmin(halfedArray)] - center
 
     return [amplitude, width, center, offset]
@@ -268,7 +284,7 @@ def fittedProfile(x, parameters, fitType="sinc"):
 
 # --------------------------------------------------
 # Compute the contrast, noise and snr of the signal
-def computeSNR(signal, fittedSignal, parameters, parameterErrors, widthFactor=3):
+def computeSNR(signal, fittedSignal, parameters, parameterErrors, widthFactor=3, brightSpot=True):
 
     # Extract the profiles and values
     distance, profile = signal
@@ -277,10 +293,16 @@ def computeSNR(signal, fittedSignal, parameters, parameterErrors, widthFactor=3)
     aErr, wErr, cErr, yErr = parameterErrors
 
     # Compute the contrast
-    contrast = (np.amax(fitProfile) - y0) * 100 / y0
-    contrastErr = (aErr * 100 / y0) + (
-        yErr * (np.amax(fitProfile) - y0) * 100 / (y0 ** 2)
-    )
+    if brightSpot:
+        contrast = (np.amax(fitProfile) - y0) * 100 / y0
+        contrastErr = (aErr * 100 / y0) + (
+            yErr * (np.amax(fitProfile) - y0) * 100 / (y0 ** 2)
+        )
+    else:
+        contrast = (np.amin(fitProfile) - y0) * 100 / y0
+        contrastErr = (aErr * 100 / y0) + (
+            yErr * (np.amin(fitProfile) - y0) * 100 / (y0 ** 2)
+        )
 
     if c - w * widthFactor > distance[0]:
 
@@ -293,7 +315,10 @@ def computeSNR(signal, fittedSignal, parameters, parameterErrors, widthFactor=3)
         noiseErr = yErr * np.std(noiseProfile, ddof=1) * 100 / (y0 ** 2)
 
         # Compute the SNR
-        snr = (np.amax(fitProfile) - y0) / np.std(noiseProfile, ddof=1)
+        if brightSpot:
+            snr = (np.amax(fitProfile) - y0) / np.std(noiseProfile, ddof=1)
+        else:
+            snr = (np.amin(fitProfile) - y0) / np.std(noiseProfile, ddof=1)
         snrErr = (contrastErr / noise) + (noiseErr * contrast / (noise ** 2))
 
     else:

@@ -465,7 +465,7 @@ class profilingControlPanel(qtw.QDockWidget):
         # Fit profiles if required
         if makeFit or self.parent.controlPanel.liveFitCheckBox.isChecked():
             self.initialParameters = mfunc.initialiseParameters(
-                self.distance, self.profile
+                self.distance, self.profile, brightSpot=self.parent.controlPanel.brightSpotCheckBox.isChecked()
             )
             self.updateInitialParameters(self.initialParameters)
             self.fitProfile()
@@ -620,7 +620,7 @@ class profilingControlPanel(qtw.QDockWidget):
             ),
         )
         imageValues, imageValuesErr = mfunc.computeSNR(
-            signal, fittedSignal, self.fitParameters, self.fitErrors
+            signal, fittedSignal, self.fitParameters, self.fitErrors, brightSpot=self.parent.controlPanel.brightSpotCheckBox.isChecked()
         )
         self.currentContrast, self.currentNoise, self.currentSNR = imageValues
         (

@@ -14,15 +14,25 @@ import iscan.image_handling as img
 
 # -------------------------------------
 # Check if the extension can be opened
-def _checkValidExtension(fileName):
+def _checkValidExtension(fileList):
 
-    name, nameExtension = os.path.splitext(fileName)
-    if nameExtension in [".tif"]:
-        return True
-    else:
-        _badFileMessageBox()
-        return False
+    for fileIndex, fileName in enumerate(fileList):
 
+        # Check that the extension can be opened
+        name, nameExtension = os.path.splitext(fileName)
+        if nameExtension in [".tif"]:
+            return True, fileIndex
+
+        # Ignore data and log files
+        elif nameExtension in [".dat", ".txt"]:
+            pass
+
+        else:
+            _badFileMessageBox()
+            return False, 0
+
+    # Return an error if there is no readable file in the folder
+    return False, 0
 
 # -------------------------------------
 # Check the extension and/or modify it
@@ -33,7 +43,6 @@ def _checkExtension(fileName, extension):
         fileName += extension
 
     return fileName
-
 
 # ---------------------------------------------------
 # Return error message if the file is not recognised
@@ -58,11 +67,12 @@ def loadImageFolder(parent, path):
 
     # Check if the first file of the folder is recognised by the software
     fileInFolder = glob(path + "*.*")
-    if not _checkValidExtension(fileInFolder[0]):
+    fileCanBeOpened, fileIndex = _checkValidExtension(fileInFolder)
+    if not fileCanBeOpened:
         return 0
 
     # Load the folder
-    imageName, imageExtension = os.path.splitext(fileInFolder[0])
+    imageName, imageExtension = os.path.splitext(fileInFolder[fileIndex])
     frames = img.loadStack(path + "*" + imageExtension)
 
     # Create the tab display if not created yet

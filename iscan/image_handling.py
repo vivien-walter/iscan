@@ -126,7 +126,7 @@ def cropArray(position, array, size=50):
 
 # ------------------------------------
 # Adjust the position to local maxima
-def positionAdjustment(imageArray, cursorPosition, areaSize=30):
+def positionAdjustment(imageArray, cursorPosition, areaSize=30, brightSpot=True):
 
     # Extract the index from cursor position
     column, row = cursorPosition
@@ -135,10 +135,16 @@ def positionAdjustment(imageArray, cursorPosition, areaSize=30):
     subArray = cropArray(cursorPosition, imageArray, size=areaSize)
     smoothedArray = _gaussianBlur(subArray)
 
-    # Find the local minima to recenter the subarray
+    # Find the local extremum to recenter the subarray
+    if brightSpot:
+        extremumPosition = np.argmax(smoothedArray, axis=None)
+    else:
+        extremumPosition = np.argmin(smoothedArray, axis=None)
+
     subRow, subColumn = np.unravel_index(
-        np.argmax(smoothedArray, axis=None), smoothedArray.shape
+        extremumPosition, smoothedArray.shape
     )
+
     subRow += row - areaSize
     subColumn += column - areaSize
 
@@ -148,15 +154,17 @@ def positionAdjustment(imageArray, cursorPosition, areaSize=30):
 
     # Make a gaussian 2D fit on the data
     try:
-        fitParameters, _ = mfunc.gaussian2DFit(smoothedArray2)
+        fitParameters, _ = mfunc.gaussian2DFit(smoothedArray2, brightSpot=brightSpot)
         fittedRow, fittedColumn = fitParameters[1:3]
-    except:
-        fittedRow, fittedColumn = row, column
 
-    return (
+        position  = (
         int(round(fittedColumn, 0)) + subColumn - areaSize,
-        int(round(fittedRow, 0)) + subRow - areaSize,
-    )
+        int(round(fittedRow, 0)) + subRow - areaSize
+        )
+    except:
+        position = (subColumn, subRow)
+
+    return position
 
 
 # -------------------------------------
