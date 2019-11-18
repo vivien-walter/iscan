@@ -19,7 +19,7 @@ class interactiveBackgroundWidget(qtw.QLabel):
         # Initialise the image
         self.parent = parent
         pathName = os.path.abspath(os.path.dirname(sys.argv[0]))
-        imagePath = pathName + "/iscan/images/background.png"
+        imagePath = os.path.join(pathName, "iscan", "images", "background.png") #imagePath = pathName + "/iscan/images/background.png"
 
         # Set the background image
         self.backgroundPixmap = qtg.QPixmap(imagePath)

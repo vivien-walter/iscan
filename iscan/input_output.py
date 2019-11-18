@@ -70,8 +70,7 @@ def loadImageFolder(parent, path):
         parent.createTabDisplay()
 
     # Append the image in a new tab
-    if path[-1] == "/":
-        path = path[0:-1]
+    path = os.path.normpath(path)
     displayName = os.path.split(path)[1]
     parent.addImageTab(frames.image.raw, name=displayName)
 
@@ -86,8 +85,7 @@ def openFolder(parent):
         return 0
 
     # Correct the name
-    if name[-1] != "/":
-        name += "/"
+    name = os.path.join(name, "")
 
     # Load the folder
     loadImageFolder(parent, name)
