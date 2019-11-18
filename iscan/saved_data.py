@@ -62,6 +62,7 @@ class iScatSignal:
             self.noiseErr,
             self.snr,
             self.snrErr,
+            self.frame,
             self.x,
             self.y,
             self.angle,
