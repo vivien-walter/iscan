@@ -1,5 +1,5 @@
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageSequence
 import pims
 
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\
@@ -64,6 +64,20 @@ def loadStack(stackPath):
     stackArray = np.array(sequence)
 
     return stackArray
+
+# ----------------
+# Open a gif stack
+def loadGifStack(filePath):
+
+    # Open the gif
+    sequence = Image.open(filePath)
+
+    # Extract all frames
+    stackArray = []
+    for frame in ImageSequence.Iterator(sequence):
+        stackArray.append( np.copy(np.array(frame)) )
+
+    return np.array(stackArray)
 
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
 ## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS

@@ -61,17 +61,17 @@ def getFileOrFolder(parent):
 
 # ------------------------------------
 # Check if the extension can be opened
-def checkValidExtension(fileList):
+def checkValidExtension(fileList, accepted_formats=[".tif"], skipped_format=[".dat", ".txt"]):
 
     for fileIndex, fileName in enumerate(fileList):
 
         # Check that the extension can be opened
         name, nameExtension = os.path.splitext(fileName)
-        if nameExtension in [".tif"]:
+        if nameExtension in accepted_formats:
             return True, fileIndex
 
         # Ignore data and log files
-        elif nameExtension in [".dat", ".txt"]:
+        elif nameExtension in skipped_format:
             pass
 
         else:
