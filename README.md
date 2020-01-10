@@ -3,6 +3,7 @@
 ## Presentation
 
 **Current version**: Beta
+
 **Release date**: 10/02/2020
 
 **iSCAN** is a Python 3-based GUI to analyse the image stacks that have been collected using an iSCAT microscope.
