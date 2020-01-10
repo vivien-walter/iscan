@@ -54,4 +54,10 @@ This function has not been implemented yet.
 
 #### - Using the Image Control left dock
 
-When 
+When an image is opened in the software, the **Image Control** left dock is automatically opened. The dock allows the user to do the following navigation commands:
+
+- **Change the zoom** of the displayed image. The default zoom is automatically set so that the image flls the whole center widget of the software. The value can be changed manually by editing the input field, set to the actual pixel size (100%), or increased/decreased by 5% respectively with the + and - buttons.
+
+- **Navigate through the frames** of the image stack. The frame to be displayed can be changed manually via the input field or the slide bar. It can also be changed using the left and right arrows. The animation can be started using the Play button, and stopped using the Stop button.
+
+The speed of the animation (in FPS) can be changed using the input field. However, the speed is automatically recalculated when the maximum speed that can be achieved by the software is lower than the speed given in the input field. Note also that the speed of the animation is not affecting the time calibration of the stack, used for the diffusitiviy calculations for example.
