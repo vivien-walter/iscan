@@ -13,28 +13,29 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 from PIL import Image, ImageQt
 
-import iscan.image_handling as img
-from iscan.input_output import saveTable
-import iscan.math_functions as mfunc
-from iscan.saved_data import iScatSignal
-
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
 ## SIDE BAR FOR PARTICLE TRACKING
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
-
 
 class profilingControlPanel(qtw.QDockWidget):
     def __init__(self, name, parent):
         super(profilingControlPanel, self).__init__(name, parent)
 
-        # Generate the display
+        # Initialize the display
         self.parent = parent
+
+        # Extract the array and its properties
+        currentTab, _ = self.parent.getCurrentTab()
+        self.array = currentTab.image.stack.frame
+        self.position = None
+
+        # Generate the display
         self.mainWidget = qtw.QWidget()
         self.mainWidget.setMinimumWidth(550)
         self.widgetLayout = qtw.QHBoxLayout(self.mainWidget)
         self.widgetLayout.setContentsMargins(0, 0, 0, 0)
 
-        # ------------------------
+        # -----------------------
         # Populate the left panel
         self.leftPanelWidget = qtw.QWidget()
         self.leftPanelLayout = qtw.QVBoxLayout(self.leftPanelWidget)
@@ -83,7 +84,14 @@ class profilingControlPanel(qtw.QDockWidget):
         self.setWidget(self.mainWidget)
         self.setFloating(False)
 
-    # ----------------------------------------------
+    # ---------------------------------------------------
+    # Reinitialise the display when the window is closed
+    def closeEvent(self, *args, **kwargs):
+        super(qtw.QDockWidget, self).closeEvent(*args, **kwargs)
+        self.parent.docks['profiling'] = None
+        self.parent.resizeWindowOnDockAction()
+
+    # ---------------------------------------------
     # Generate the display of the current selection
     def createSelectionSnapshot(self, parentWidget):
 
@@ -116,7 +124,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.selectionSnapshotWidget.setLayout(self.selectionSnapshotLayout)
         parentWidget.addWidget(self.selectionSnapshotWidget)
 
-    # ------------------------------------
+    # -----------------------------------
     # Generate the display of the profile
     def createProfileDisplay(self, parentWidget):
 
@@ -155,7 +163,7 @@ class profilingControlPanel(qtw.QDockWidget):
         # Checkbox for the pre-fit display
         self.prefitDisplayCheckBox = qtw.QCheckBox("Show pre-fit")
         self.prefitDisplayCheckBox.setChecked(True)
-        self.prefitDisplayCheckBox.toggled.connect(self.plotProfile)
+        #self.prefitDisplayCheckBox.toggled.connect(self.plotProfile)
         self.prefitDisplayCheckBox.setStatusTip(
             "Display the pre-fitted function based on the given initial fit parameters."
         )
@@ -165,7 +173,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.profileDisplayWidget.setLayout(self.profileDisplayLayout)
         parentWidget.addWidget(self.profileDisplayWidget)
 
-    # ------------------------------------------
+    # -----------------------------------------
     # Generate the controls of the profile line
     def createLineSettings(self, parentWidget):
 
@@ -186,7 +194,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.angleSlider.setMinimum(-89.9)  # Set to -89.9 and 89.9 to avoid crashes
         self.angleSlider.setMaximum(89.9)
         self.angleSlider.setValue(0)
-        self.angleSlider.valueChanged.connect(self.generateProfileLine)
+        self.angleSlider.valueChanged.connect(self.createProfileLine)
         self.angleSlider.setStatusTip(
             "Modify the angle of the profile line on the image."
         )
@@ -197,7 +205,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.lengthSlider.setMinimum(60)  # All the following values are arbitrary
         self.lengthSlider.setMaximum(1200)
         self.lengthSlider.setValue(200)
-        self.lengthSlider.valueChanged.connect(self.generateProfileLine)
+        self.lengthSlider.valueChanged.connect(self.createProfileLine)
         self.lengthSlider.setStatusTip(
             "Modify the length of the profile line on the image."
         )
@@ -208,7 +216,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.lineSettingsWidget.setLayout(self.lineSettingsLayout)
         parentWidget.addWidget(self.lineSettingsWidget)
 
-    # -------------------------------------------
+    # ------------------------------------------
     # Generate the selection of the fit function
     def createFitFunctions(self, parentWidget):
 
@@ -258,6 +266,7 @@ class profilingControlPanel(qtw.QDockWidget):
 
         self.storeFitButton = qtw.QPushButton("Store results")
         self.storeFitButton.clicked.connect(self.storeProfile)
+        self.storeFitButton.setEnabled(False)
         self.storeFitButton.setStatusTip(
             "Store the result of the fit in the table to save it later."
         )
@@ -267,7 +276,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.fitFunctionWidget.setLayout(self.fitFunctionLayout)
         parentWidget.addWidget(self.fitFunctionWidget)
 
-    # ------------------------------------------------------------
+    # -----------------------------------------------------------
     # Generate the manual input and display of the fit parameters
     def createParametersInput(self, parentWidget):
 
@@ -323,7 +332,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.fitParametersWidget.setLayout(self.fitParametersLayout)
         parentWidget.addWidget(self.fitParametersWidget)
 
-    # ----------------------------------------------
+    # ---------------------------------------------
     # Generate the display of the result of the fit
     def createFitResults(self, parentWidget):
 
@@ -358,7 +367,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.imageValuesWidget.setLayout(self.imageValuesLayout)
         parentWidget.addWidget(self.imageValuesWidget)
 
-    # ----------------------------------------------
+    # ---------------------------------------------
     # Generate the display of the result of the fit
     def createResultsTable(self, parentWidget):
 
@@ -404,6 +413,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.resultsTable.setSelectionBehavior(qtw.QAbstractItemView.SelectRows)
         self.resultsTable.setEditTriggers(qtw.QAbstractItemView.NoEditTriggers)
         self.resultsTable.cellDoubleClicked.connect(self.tableIsDoubleClicked)
+        self.resultsTable.itemSelectionChanged.connect(self.tableSelectionChanged)
         self.resultsDisplayLayout.addWidget(self.resultsTable)
 
         # Save button
@@ -417,151 +427,10 @@ class profilingControlPanel(qtw.QDockWidget):
         parentWidget.addWidget(self.resultsDisplayWidget)
 
     ##-\-\-\-\-\-\-\-\-\
-    ## UPDATE THE PROFILE
+    ## UPDATE THE DISPLAY
     ##-/-/-/-/-/-/-/-/-/
 
-    # ---------------------------------------------
-    # Update the profile when the image is clicked
-    def updateOnClick(self, position, imageArray):
-
-        # Update the general informations of the profile
-        positionText = "(" + str(position[0]) + ";" + str(position[1]) + ")"
-        self.currentPositionDisplay.setText(positionText)
-
-        # Update the caption display
-        captionArray = img.cropArray(position, imageArray)
-
-        self.captionToDisplay = Image.fromarray(captionArray.astype(np.uint8))
-        self.pixmapToDisplay = qtg.QPixmap.fromImage(
-            qtg.QImage(ImageQt.ImageQt(self.captionToDisplay))
-        )
-        self.captionCanvas.setPixmap(self.pixmapToDisplay)
-
-        # Save the profile sources in the class
-        self.currentPosition = position
-        self.currentArray = imageArray
-
-        self.generateProfileLine(makeFit=True)
-
-    # ------------------------
-    # Update the profile line
-    def generateProfileLine(self, event=None, makeFit=False):
-
-        # Extract the values
-        self.currentAngle = self.angleSlider.value()
-        self.currentLength = self.lengthSlider.value()
-
-        # Update the line on the image
-        tabIndex = self.parent.centralWidget.currentIndex()
-        p1, p2 = self.parent.imageTabsImage[tabIndex].drawNewProfile(
-            self.currentPosition, self.currentAngle, self.currentLength
-        )
-
-        # Compute the profile and display it
-        self.distance, self.profile = self.parent.imageTabsImage[
-            tabIndex
-        ].extractProfile(p1, p2, self.currentPosition)
-
-        # Fit profiles if required
-        if makeFit or self.parent.controlPanel.liveFitCheckBox.isChecked():
-            self.initialParameters = mfunc.initialiseParameters(
-                self.distance, self.profile, brightSpot=self.parent.controlPanel.brightSpotCheckBox.isChecked()
-            )
-            self.updateInitialParameters(self.initialParameters)
-            self.fitProfile()
-
-        else:
-            self.plotProfile()
-
-    # ----------------
-    # Fit the profile
-    def fitProfile(self):
-
-        # Retrieve the initial parameters to use from the UI
-        initialParameters = self.getInitialParameters()
-
-        # Fit the profile using the given fit parameters
-        self.fitType = self.returnFitType()
-        self.fitParameters, self.fitErrors = mfunc.fitProfile(
-            self.distance, self.profile, initialParameters, fitType=self.fitType
-        )
-
-        # Update the display
-        self.updateFittedParameters(self.fitParameters, self.fitErrors)
-        self.calculateContrastNoise()
-        self.plotProfile()
-
-        # Enable the store profile button
-        if not self.storeFitButton.isEnabled():
-            self.generateProfileLine()
-            self.storeFitButton.setEnabled(True)
-
-    # -----------------------------------------------------------------------------
-    # Plot the intensity profile with the current position, angle and length given
-    def plotProfile(self):
-
-        # Reset the display
-        self.profileAxis.clear()
-
-        # Calculate the fitted range
-        xMin = self.distance[0]
-        xMax = self.distance[-1]
-        xStep = (xMax - xMin) / 1000
-        self.fittedDistance = np.arange(xMin, xMax + xStep, xStep)
-
-        # Plot the profile
-        self.profileAxis.plot(self.distance, self.profile, "k-", linewidth=3)
-
-        # Plot the pre-fit plot
-        if self.prefitDisplayCheckBox.isChecked():
-            self.profileAxis.plot(
-                self.fittedDistance,
-                mfunc.fittedProfile(
-                    self.fittedDistance,
-                    self.getInitialParameters(),
-                    fitType=self.returnFitType(),
-                ),
-                "r--",
-                linewidth=2,
-            )
-
-        # Plot the plot
-        self.fittedShortProfile = mfunc.fittedProfile(
-            self.distance, self.fitParameters, fitType=self.returnFitType()
-        )
-        self.fittedProfile = mfunc.fittedProfile(
-            self.fittedDistance, self.fitParameters, fitType=self.returnFitType()
-        )
-        self.profileAxis.plot(
-            self.fittedDistance, self.fittedProfile, "b-", linewidth=4
-        )
-
-        # Refresh the canvas
-        self.profileCanvas.draw()
-
-    ##-\-\-\-\-\-\-\
-    ## DATA HANDLING
-    ##-/-/-/-/-/-/-/
-
-    # ------------------------------
-    # Return the type of fit to use
-    def returnFitType(self):
-
-        # Lists
-        modes = np.array(["sinc", "gauss"])
-        buttonState = np.array(
-            [
-                self.sincFunctionRadiobutton.isChecked(),
-                self.gaussFunctionRadiobutton.isChecked(),
-            ]
-        )
-
-        # Get the enabled mode
-        modeIndex = np.where(buttonState == True)[0]
-
-        return modes[modeIndex[0]]
-
-    # ---------------------------------------------
+    # --------------------------------------------
     # Update the display of the initial parameters
     def updateInitialParameters(self, parameters):
 
@@ -574,7 +443,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.widthEntry.setText(str(round(width, 3)))
         self.offsetEntry.setText(str(round(offset, 3)))
 
-    # ---------------------------------------------
+    # -------------------------------------------
     # Update the display of the fitted parameters
     def updateFittedParameters(self, fitParameters, fitErrors):
 
@@ -595,19 +464,163 @@ class profilingControlPanel(qtw.QDockWidget):
         offsetText = str(round(offset, 3)) + " ± " + str(round(oErr, 3))
         self.offsetOutput.setText(offsetText)
 
-    # -----------------------------------------------
+    # -------------------------------------
+    # Update the profile line on the screen
+    def createProfileLine(self, event=None, makeFit=False):
+
+        # Do not fit if no profile is selected
+        if self.position is None:
+            return 0
+
+        # Extract the values
+        self.angle = self.angleSlider.value()
+        self.length = self.lengthSlider.value()
+
+        # Update the line on the image
+        currentTab, _ = self.parent.getCurrentTab()
+        p1, p2 = currentTab.image.createProfile( self.position, self.angle, self.length )
+
+        # Compute the profile and display it
+        self.distance, self.profile = currentTab.image.extractProfile(p1, p2, self.position)
+
+        # Fit profiles if required
+        if makeFit or self.parent.controlPanel.liveFitCheckBox.isChecked():
+            brightSpot = self.parent.controlPanel.brightSpotCheckBox.isChecked()
+            self.initial_parameters = initializeParameters( self.distance, self.profile, brightSpot=brightSpot )
+            self.updateInitialParameters( self.initial_parameters )
+            self.fitProfile()
+
+        else:
+            self.plotProfile()
+            pass
+
+    # -----------------------------------------------------------------------------
+    # Plot the intensity profile with the current position, angle and length given
+    def plotProfile(self):
+
+        # Do not fit if no profile is selected
+        if self.position is None:
+            return 0
+
+        # Reset the display
+        self.profileAxis.clear()
+
+        # Calculate the fitted range
+        xMin = self.distance[0]
+        xMax = self.distance[-1]
+        xStep = (xMax - xMin) / 1000
+        self.distance_fitted = np.arange(xMin, xMax + xStep, xStep)
+
+        # Plot the profile
+        self.profileAxis.plot(self.distance, self.profile, "k-", linewidth=3)
+
+        # Plot the pre-fit plot
+        if self.prefitDisplayCheckBox.isChecked():
+            self.profileAxis.plot(
+                self.distance_fitted,
+                fittedProfile(
+                    self.distance_fitted,
+                    self.getInitialParameters(),
+                    fitType=self.returnFitType(),
+                ),
+                "r--",
+                linewidth=2,
+            )
+
+        # Plot the plot
+        self.profile_short = fittedProfile(
+            self.distance, self.fit_parameters, fitType=self.returnFitType()
+        )
+        self.profile_fitted = fittedProfile(
+            self.distance_fitted, self.fit_parameters, fitType=self.returnFitType()
+        )
+        self.profileAxis.plot(
+            self.distance_fitted, self.profile_fitted, "b-", linewidth=4
+        )
+
+        # Refresh the canvas
+        self.profileCanvas.draw()
+
+    ##-\-\-\-\-\-\-\
+    ## FIT MANAGEMENT
+    ##-/-/-/-/-/-/-/
+
+    # -----------------------------
+    # Return the type of fit to use
+    def returnFitType(self):
+
+        # Lists
+        modes = np.array(["sinc", "gauss"])
+        buttonState = np.array(
+            [
+                self.sincFunctionRadiobutton.isChecked(),
+                self.gaussFunctionRadiobutton.isChecked(),
+            ]
+        )
+
+        # Get the enabled mode
+        modeIndex = np.where(buttonState == True)[0]
+
+        return modes[modeIndex[0]]
+
+    # ----------------------------------------------
     # Get the initial parameters currently displayed
     def getInitialParameters(self):
 
-        # Update the display
-        amplitude = float(self.amplitudeEntry.text())
-        center = float(self.centerEntry.text())
-        width = float(self.widthEntry.text())
-        offset = float(self.offsetEntry.text())
+        # Retrieve the values
+        amplitude = self.amplitudeEntry.text()
+        center = self.centerEntry.text()
+        width = self.widthEntry.text()
+        offset = self.offsetEntry.text()
+
+        # Check the variable type
+        amplitude = string2Float(amplitude)
+        if amplitude == False:
+            amplitude = self.fit_parameters[0]
+            self.amplitudeEntry.setText( str(amplitude) )
+        center = string2Float(center)
+        if center == False:
+            center = self.fit_parameters[1]
+            self.amplitudeEntry.setText( str(center) )
+        width = string2Float(width)
+        if width == False:
+            width = self.fit_parameters[2]
+            self.amplitudeEntry.setText( str(width) )
+        offset = string2Float(offset)
+        if offset == False:
+            offset = self.fit_parameters[3]
+            self.amplitudeEntry.setText( str(offset) )
 
         return [amplitude, width, center, offset]
 
-    # -----------------------------------------------------------------
+    # ---------------
+    # Fit the profile
+    def fitProfile(self):
+
+        # Do not fit if no profile is selected
+        if self.position is None:
+            return 0
+
+        # Retrieve the initial parameters to use from the UI
+        initialParameters = self.getInitialParameters()
+
+        # Fit the profile using the given fit parameters
+        self.fit_type = self.returnFitType()
+        self.fit_parameters, self.fit_errors = fitProfile(
+            self.distance, self.profile, initialParameters, fitType=self.fit_type
+        )
+
+        # Update the display
+        self.updateFittedParameters(self.fit_parameters, self.fit_errors)
+        self.calculateContrastNoise()
+        self.plotProfile()
+
+        # Enable the store profile button
+        if not self.storeFitButton.isEnabled():
+            self.createProfileLine()
+            self.storeFitButton.setEnabled(True)
+
+    # ----------------------------------------------------------------
     # Calculate and display the contrast, noise and SNR of the profile
     def calculateContrastNoise(self):
 
@@ -615,12 +628,12 @@ class profilingControlPanel(qtw.QDockWidget):
         signal = self.distance, self.profile
         fittedSignal = (
             self.distance,
-            mfunc.fittedProfile(
-                self.distance, self.fitParameters, fitType=self.returnFitType()
+            fittedProfile(
+                self.distance, self.fit_parameters, fitType=self.returnFitType()
             ),
         )
-        imageValues, imageValuesErr = mfunc.computeSNR(
-            signal, fittedSignal, self.fitParameters, self.fitErrors, brightSpot=self.parent.controlPanel.brightSpotCheckBox.isChecked()
+        imageValues, imageValuesErr = computeSNR(
+            signal, fittedSignal, self.fit_parameters, self.fit_errors, brightSpot=self.parent.controlPanel.brightSpotCheckBox.isChecked()
         )
         self.currentContrast, self.currentNoise, self.currentSNR = imageValues
         (
@@ -647,76 +660,11 @@ class profilingControlPanel(qtw.QDockWidget):
         )
         self.snrOutput.setText(snrText)
 
-    # ----------------------------------------
-    # Store the current profile in the memory
-    def storeProfile(self):
-
-        # Prepare all the values
-        allData = []
-        tabIndex = self.parent.centralWidget.currentIndex()
-        currentImage = self.parent.imageTabsImage[tabIndex]
-
-        numberStoredData = len(currentImage.savedData)
-        dataName = (
-            self.parent.imageTabsImage[tabIndex].name + "_" + str(numberStoredData + 1)
-        )
-
-        imageValues = [
-            round(self.currentContrast, 3),
-            round(self.currentContrastErr, 3),
-            round(self.currentNoise, 3),
-            round(self.currentNoiseErr, 3),
-            round(self.currentSNR, 3),
-            round(self.currentSNRErr, 3),
-        ]
-
-        frameNumber = currentImage.currentFrame
-
-        positionAndSetup = [
-            int(self.currentPosition[0]),
-            int(self.currentPosition[1]),
-            int(self.currentAngle),
-            int(self.currentLength),
-        ]
-
-        fitType = self.fitType
-
-        fitParams = self.fitParameters
-        fitErrors = self.fitErrors
-
-        # Append values to the memory
-        signal = self.distance, self.profile
-        fittedSignal = self.distance, self.fittedShortProfile
-        currentImage.savedData.append(
-            iScatSignal(
-                dataName,
-                imageValues,
-                frameNumber,
-                positionAndSetup,
-                fitType,
-                fitParams,
-                fitErrors,
-                signal,
-                fittedSignal,
-            )
-        )
-
-        # Update table display
-        self.populateTable()
-
-        # Update profile display
-        currentImage.savedProfiles.append(currentImage.activeProfile)
-        currentImage.activeProfile = None
-        currentImage.updateArrays()
-
-        # Disable the store profile button
-        self.storeFitButton.setEnabled(False)
-
     ##-\-\-\-\-\-\-\-\
-    ## TABLE GENERATION
+    ## TABLE MANAGEMENT
     ##-/-/-/-/-/-/-/-/
 
-    # ------------------------
+    # -----------------------
     # Populate the data table
     def populateTable(self):
 
@@ -727,8 +675,8 @@ class profilingControlPanel(qtw.QDockWidget):
                 self.resultsTable.removeRow(0)
 
         # Retrieve the data associated with the current image
-        tabIndex = self.parent.centralWidget.currentIndex()
-        currentData = self.parent.imageTabsImage[tabIndex].savedData
+        currentTab, _ = self.parent.getCurrentTab()
+        currentData = currentTab.image.profile_saved
 
         # Fill the table
         if len(currentData) > 0:
@@ -736,14 +684,14 @@ class profilingControlPanel(qtw.QDockWidget):
 
                 # Fill the rows
                 self.resultsTable.insertRow(i)
-                valueList = savedData.getData()
+                valueList = savedData.getTableValues()
 
                 # Fill the columns
                 for j, data in enumerate(valueList):
                     item = qtw.QTableWidgetItem(str(data))
                     self.resultsTable.setItem(i, j, item)
 
-    # ---------------------------------------
+    # --------------------------------------
     # React if table has been double clicked
     def tableIsDoubleClicked(self, row, column):
 
@@ -764,32 +712,197 @@ class profilingControlPanel(qtw.QDockWidget):
             # Remove from table
             self.resultsTable.removeRow(row)
 
-            # Remove line and data
-            tabIndex = self.parent.centralWidget.currentIndex()
-            currentImage = self.parent.imageTabsImage[tabIndex]
-            currentImage.savedData.pop(row)
-            currentImage.savedProfiles.pop(row)
-            currentImage.updateArrays()
+            # Retrieve the data associated with the current image
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.profile_saved.pop(row)
 
-    # -------------------------------------------
+            currentTab.image.updateArrays()
+
+    # -----------------------------------------------------
+    # React if rows are selected or deselected in the table
+    def tableSelectionChanged(self):
+
+        # List all the selected elements of the table
+        currentSelection = self.resultsTable.selectedItems()
+
+        # Retrieve the data associated with the current image
+        currentTab, _ = self.parent.getCurrentTab()
+
+        # Loop over all the items
+        rowCount = self.resultsTable.rowCount()
+        try:
+            for i in range(rowCount):
+
+                # Check if the row is currently selected
+                currentItem = self.resultsTable.item(i, 0)
+
+                # Change the colour of the profile based on the selection
+                if currentItem in currentSelection:
+                    currentTab.image.profile_saved[i].colour = 'blue'
+                else:
+                    currentTab.image.profile_saved[i].colour = 'black'
+
+            # Refresh the display
+            currentTab.image.updateArrays()
+        except:
+            pass
+
+    # ---------------------------------------
+    # Store the current profile in the memory
+    def storeProfile(self):
+
+        # Retrieve the current tab and profile
+        currentTab, _ = self.parent.getCurrentTab()
+        currentWidget = currentTab.image
+        currentProfile = currentWidget.profile_active
+
+        # Flag data as saved in the tab
+        currentTab.saved_data = True
+
+        # Generate the name of the saved profile
+        numberStoredData = len(currentWidget.profile_saved)
+        currentProfile.name = currentWidget.name + "_" + str(numberStoredData + 1)
+
+        # Save the profile properties
+        currentProfile.position = self.position
+        currentProfile.angle = self.angle
+        currentProfile.length = self.length
+
+        # Save the image informations
+        currentProfile.contrast['value'] = round(self.currentContrast, 3)
+        currentProfile.contrast['error'] = round(self.currentContrastErr, 3)
+        currentProfile.noise['value'] = round(self.currentNoise, 3)
+        currentProfile.noise['error'] = round(self.currentNoiseErr, 3)
+        currentProfile.snr['value'] = round(self.currentSNR, 3)
+        currentProfile.snr['error'] = round(self.currentSNRErr, 3)
+
+        # Save the fit options and parameters
+        currentProfile.fit_type = self.fit_type
+        currentProfile.addFitParameters( self.fit_parameters, self.fit_errors )
+
+        # Save the profile and fit
+        currentProfile.distance = self.distance
+        currentProfile.profile = self.profile
+        currentProfile.profile_fit = self.profile_short
+
+        # Update profile display
+        currentWidget.profile_saved.append( currentProfile )
+        currentWidget.profile_active = None
+        currentWidget.updateArrays()
+
+        # Update table display
+        self.populateTable()
+
+        # Disable the store profile button
+        self.storeFitButton.setEnabled(False)
+
+    # ------------------------------------------
     # Save the content of the table in a file(s)
     def saveTableInFile(self):
 
-        # Check if profiles are stored in the memory
-        tabIndex = self.parent.centralWidget.currentIndex()
-        profileNumbers = len(self.parent.imageTabsImage[tabIndex].savedData)
+        # Retrieve the data associated with the current image
+        currentTab, _ = self.parent.getCurrentTab()
+        profileNumbers = len( currentTab.image.profile_saved )
 
         # Display an error message if the table is empty
         if profileNumbers < 1:
-
-            msg = qtw.QMessageBox()
-            msg.setIcon(qtw.QMessageBox.Warning)
-            msg.setText("ERROR: Not enough data")
-            msg.setInformativeText("""At least one profile is required.""")
-            msg.setWindowTitle("ERROR")
-            msg.setStandardButtons(qtw.QMessageBox.Ok)
-            returnValue = msg.exec_()
+            errorMessage("ERROR: Not enough data", "At least one profile is required.")
 
         # Save the results in a file
         else:
-            saveTable(self.parent, self.parent.imageTabsImage[tabIndex].savedData)
+            saveTable( self.parent, currentTab.image.profile_saved )
+
+    ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
+    ## LISTENERS FOR UPDATING THE DISPLAY
+    ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+
+    # -----------------------------------------------
+    # Update the profile and fit on image interaction
+    def updateOnClick(self, position):
+
+        # Save the position
+        self.position = position
+
+        # Update the general informations of the profile
+        positionText = "(" + str(position[0]) + ";" + str(position[1]) + ")"
+        self.currentPositionDisplay.setText(positionText)
+
+        # Update the caption display
+        captionArray = cropImage(position, self.array.display)
+
+        self.captionToDisplay = Image.fromarray(captionArray.astype(np.uint8))
+        self.pixmapToDisplay = qtg.QPixmap.fromImage(
+            qtg.QImage(ImageQt.ImageQt(self.captionToDisplay))
+        )
+        self.captionCanvas.setPixmap(self.pixmapToDisplay)
+
+        # Update the display
+        self.createProfileLine(makeFit=True)
+        self.storeFitButton.setEnabled(True)
+
+    # ------------------------------
+    # Update when the tab is changed
+    def updateOnTabChange(self):
+
+        # Retrieve the current tab being displayed
+        currentTab, _ = self.parent.getCurrentTab()
+        currentImage = currentTab.image
+
+        # Disable any existing active profile
+        currentImage.profile_active = None
+
+        # Deselect all selected profiles
+        for profile in currentImage.profile_saved:
+            profile.colour="black"
+
+        # Reset the stored properties
+        self.array = currentImage.stack.frame
+
+        self.position = None
+        self.angle = None
+        self.length = None
+
+        self.fit_parameters = None
+        self.fit_errors = None
+        self.distance = None
+        self.profile = None
+        self.profile_short = None
+
+        # Reset the canvas
+        self.profileAxis.clear()
+        self.captionCanvas.clear()
+
+        # Reset the display
+        self.currentPositionDisplay.setText("")
+
+        self.amplitudeEntry.setText("")
+        self.amplitudeOutput.setText("")
+        self.centerEntry.setText("")
+        self.centerOutput.setText("")
+        self.widthEntry.setText("")
+        self.widthOutput.setText("")
+        self.offsetEntry.setText("")
+        self.offsetOutput.setText("")
+
+        self.contrastOutput.setText("")
+        self.noiseOutput.setText("")
+        self.snrOutput.setText("")
+
+        # Refresh the canvas
+        self.profileCanvas.draw()
+
+        # Update the content of the table
+        self.populateTable()
+
+        # Refresh the display
+        currentImage.updateArrays()
+        self.storeFitButton.setEnabled(False)
+
+##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
+## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS
+##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+
+from iscan.display.error_messages import errorMessage
+from iscan.operations.general_functions import initializeParameters, fitProfile, fittedProfile, string2Float
+from iscan.operations.image_calculation import cropImage
+from iscan.operations.intensity_profiling import computeSNR, saveTable

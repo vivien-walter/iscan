@@ -1,5 +1,4 @@
-from iscan.display.main import createMainUI
-
+from iscan.display.main_window import createMainUI
 
 def startUI():
     createMainUI()
