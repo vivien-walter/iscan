@@ -13,7 +13,7 @@ class mainGUI(qtw.QMainWindow):
         # Initialize the properties of the software Main GUI
         self.application = application
         self.title = "iSCAT Image Analysis"
-        self.version = "v1.0"
+        self.version = "beta" #"v1.0.0"
 
         # Generate the display
         self.setWindowTitle(self.title + " (" + self.version + ")")

@@ -451,8 +451,10 @@ class frameControlPanel(qtw.QDockWidget):
             timerBegin = time.time()
 
     def playAnimation(self):
-        self.animationRun = True
-        self.animationThread = subThread(target=self.animateStack, name="_proc").start()
+
+        if not self.animationRun:
+            self.animationRun = True
+            self.animationThread = subThread(target=self.animateStack, name="_proc").start()
 
     def stopAnimation(self):
         self.animationRun = False

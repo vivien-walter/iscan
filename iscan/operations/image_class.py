@@ -36,7 +36,7 @@ class imageStack:
         self.frame = imageFrame( self.array[self.i_frame] )
 
         # Image properties
-        self.zoom = 1.0
+        self.zoom = 610 / max(self.size) # 610 is an arbitrary value
         self.min_pv = np.amin( self.frame.raw )
         self.max_pv = np.amax( self.frame.raw )
         self.max_value = 1.0
