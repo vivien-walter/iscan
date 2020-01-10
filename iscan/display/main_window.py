@@ -31,7 +31,8 @@ class mainGUI(qtw.QMainWindow):
         'auto_settings':None,
         'center':None,
         'calibration':None,
-        'diffusion':None
+        'diffusion':None,
+        'save_image':None
         }
         self.docks = {
         'tracking': None,

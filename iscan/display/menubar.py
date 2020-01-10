@@ -45,23 +45,12 @@ class menuBar:
 
         self.fileMenu.addMenu(self.fileMenu.openSubMenu)
 
-        # Save a file submenu
-        self.fileMenu.saveSubMenu = qtw.QMenu('Save...', self.parent)
-
         # Save a stack
-        self.fileMenu.saveStackButton = qtw.QAction("Save Stack", self.parent)
-        self.fileMenu.saveStackButton.setShortcut("Ctrl+S")
-        self.fileMenu.saveStackButton.setStatusTip("Save an image stack.")
-        #self.fileMenu.saveStackButton.triggered.connect(self.callOpenFolder)
-        self.fileMenu.saveSubMenu.addAction(self.fileMenu.saveStackButton)
-
-        # Save a single image
         self.fileMenu.saveImageButton = qtw.QAction("Save Image", self.parent)
+        self.fileMenu.saveImageButton.setShortcut("Ctrl+S")
         self.fileMenu.saveImageButton.setStatusTip("Save the current image.")
-        #self.fileMenu.saveImageButton.triggered.connect(self.callOpenFile)
-        self.fileMenu.saveSubMenu.addAction(self.fileMenu.saveImageButton)
-
-        self.fileMenu.addMenu(self.fileMenu.saveSubMenu)
+        self.fileMenu.saveImageButton.triggered.connect(self.callSaveImage)
+        self.fileMenu.addAction(self.fileMenu.saveImageButton)
 
         self.fileMenu.addSeparator()
 
@@ -287,6 +276,19 @@ class menuBar:
     # Open the selected file
     def callOpenFile(self):
         openFile(self.parent)
+
+    # -----------------------------
+    # Save the current image opened
+    def callSaveImage(self):
+        if self.parent.tabDisplay is False:
+            errorNoImage()
+            return 0
+
+        # Open the window if it has not been opened yet
+        if self.parent.subWindows['save_image'] is None:
+            self.parent.subWindows['save_image'] = saveImagePanel(self.parent)
+        else:
+            errorAlreadyOpen()
 
     # --------------------------------------
     # Display the contrast correction window
@@ -536,6 +538,7 @@ from iscan.display.contrast_window import contrastSettingsPanel
 from iscan.display.correction_window import backgroundCorrectionPanel
 from iscan.display.diffusitivity_window import diffusitivityMeasurementPanel
 from iscan.display.error_messages import errorNoImage, errorAlreadyOpen, errorMessage
+from iscan.display.save_stack_window import saveImagePanel
 from iscan.display.statistics_window import profilesAnalysisPanel
 from iscan.input_output.open_images import openFile, openFolder
 from iscan.operations.particle_tracking import generateAutomaticPaths
