@@ -1,5 +1,6 @@
 from math import ceil, floor
 import numpy as np
+from skimage import exposure, img_as_uint, img_as_float
 
 ##-\-\-\-\-\-\-\-\
 ## FRAME AVERAGING
@@ -158,6 +159,29 @@ def centerImage(imageArray, particlePath, frameSize):
     newImageArray = np.array(newImageArray)
 
     return newImageArray
+
+# ------------------------------------------
+# Convert the image to an 8 or 16 bits image
+def changeBitDepth(image, to8bits=True, signedBits=False):
+
+    # Select the conversion to apply
+    if to8bits:
+        max = 255
+        dataType = np.uint8
+    else:
+        max = 65535
+        dataType = np.uint16
+
+    # Correct for signed bits
+    if signedBits:
+        image = np.copy(image) - np.amin(image)
+
+    # Change the array bit depth
+    newImage = np.copy(image).astype(np.float32) / np.amax(image)
+    newImage = newImage * max
+    newImage = newImage.astype(dataType)
+
+    return newImage
 
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
 ## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS

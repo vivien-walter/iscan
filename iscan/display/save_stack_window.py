@@ -49,6 +49,17 @@ class saveImagePanel(qtw.QMainWindow):
         widgetName.setFont(widgetNameFont)
         self.saveSettingsLayout.addWidget(widgetName)
 
+        # Prompt the file type
+        typeLabel = qtw.QLabel("Image file type:")
+        self.saveSettingsLayout.addWidget(typeLabel)
+
+        self.fileTypeComboBox = qtw.QComboBox()
+        self.fileTypeComboBox.addItems([".tif", ".gif"])
+        self.fileTypeComboBox.setStatusTip(
+            "Select the type of file to save."
+        )
+        self.saveSettingsLayout.addWidget(self.fileTypeComboBox)
+
         # Create the file type group
         self.fileTypeGroup = qtw.QGroupBox("File to save")
         self.fileTypeLayout = qtw.QVBoxLayout(self.fileTypeGroup)
@@ -57,6 +68,7 @@ class saveImagePanel(qtw.QMainWindow):
 
         self.saveStackRadiobutton = qtw.QRadioButton("Image stack")
         self.saveStackRadiobutton.setChecked(True)
+        self.saveStackRadiobutton.toggled.connect(self.updateComboBox)
         self.saveStackRadiobutton.setStatusTip(
             "Save the whole stack."
         )
@@ -64,6 +76,7 @@ class saveImagePanel(qtw.QMainWindow):
         self.fileTypeLayout.addWidget(self.saveStackRadiobutton)
 
         self.saveSingleRadiobutton = qtw.QRadioButton("Single image")
+        self.saveSingleRadiobutton.toggled.connect(self.updateComboBox)
         self.saveSingleRadiobutton.setStatusTip(
             "Save only the current frame."
         )
@@ -86,7 +99,7 @@ class saveImagePanel(qtw.QMainWindow):
         self.sourceArrayGroupButton.addButton(self.rawImageRadiobutton)
         self.sourceArrayLayout.addWidget(self.rawImageRadiobutton)
 
-        self.displayedImageRadiobutton = qtw.QRadioButton("Displayed Image")
+        self.displayedImageRadiobutton = qtw.QRadioButton("Displayed image")
         self.displayedImageRadiobutton.setChecked(True)
         self.displayedImageRadiobutton.setStatusTip(
             "Save the displayed contrast."
@@ -98,7 +111,7 @@ class saveImagePanel(qtw.QMainWindow):
         self.saveSettingsLayout.addWidget(self.sourceArrayGroup)
 
         # Create the bit depth group
-        self.bitDepthGroup = qtw.QGroupBox("Bit Depth")
+        self.bitDepthGroup = qtw.QGroupBox("Bit depth")
         self.bitDepthLayout = qtw.QVBoxLayout(self.bitDepthGroup)
 
         self.bitDepthGroupButton = qtw.QButtonGroup(self.bitDepthGroup)
@@ -121,6 +134,11 @@ class saveImagePanel(qtw.QMainWindow):
         self.bitDepthGroup.setLayout(self.bitDepthLayout)
         self.saveSettingsLayout.addWidget(self.bitDepthGroup)
 
+        # Manage signed bits
+        self.signedBitCheckBox = qtw.QCheckBox("The source uses unsigned bits")
+        self.signedBitCheckBox.setChecked(False)
+        self.saveSettingsLayout.addWidget(self.signedBitCheckBox)
+
         # Display the widget
         self.saveSettingsWidget.setLayout(self.saveSettingsLayout)
         parentWidget.addWidget(self.saveSettingsWidget)
@@ -135,7 +153,7 @@ class saveImagePanel(qtw.QMainWindow):
 
         # Auto contrast and histogram crop
         self.saveButton = qtw.QPushButton("Save")
-        #self.saveButton.clicked.connect(self.runBackgroundCorrection)
+        self.saveButton.clicked.connect(self.saveSelection)
         self.saveButton.setStatusTip("Save the selection.")
         self.saveActionsLayout.addWidget(self.saveButton)
 
@@ -149,10 +167,63 @@ class saveImagePanel(qtw.QMainWindow):
         parentWidget.addWidget(self.saveActionsWidget)
 
     ##-\-\-\-\-\-\-\-\-\
+    ## UPDATE THE DISPLAY
+    ##-/-/-/-/-/-/-/-/-/
+
+    # -----------------------------------------
+    # Update the list of items in the combo box
+    def updateComboBox(self):
+
+        # Purge the box
+        self.fileTypeComboBox.clear()
+
+        # Re-populate the box
+        if self.saveStackRadiobutton.isChecked():
+            self.fileTypeComboBox.addItems([".tif", ".gif"])
+
+        else:
+            self.fileTypeComboBox.addItems([".tif", ".gif", ".png", ".bmp", ".jpg"])
+
+    ##-\-\-\-\-\-\-\-\-\
     ## SAVE THE SELECTION
     ##-/-/-/-/-/-/-/-/-/
 
     # --------------------------------------------
     # Save the images using the different settings
     def saveSelection(self):
-        pass
+
+        # Retrieve the settings
+        saveSingle = self.saveSingleRadiobutton.isChecked()
+        saveRaw = self.rawImageRadiobutton.isChecked()
+        convert8Bit = self.intImageRadiobutton.isChecked()
+        signedBits = self.signedBitCheckBox.isChecked()
+        extension = self.fileTypeComboBox.currentText().lower()
+
+        # Interrupt if impossible combinations are selected
+        if extension == '.gif' and convert8Bit == False:
+            errorMessage("ERROR: Incorrect Bit Depth","""Stack files in 16-Bits cannot be saved as .gif files.
+Please select 8-bits to use this extension.""")
+            return 0
+
+        if (extension == ".bmp" or extension=='.jpg') and convert8Bit == False:
+            errorMessage("ERROR: Incorrect Bit Depth","""Images in 16-Bits are only supported in .tif or .png formats.
+Please select 8-bits to use other extensions.""")
+            return 0
+
+        # Get the current image
+        currentTab, _ = self.parent.getCurrentTab()
+        currentImage = currentTab.image.stack
+
+        # Select the type of save to do
+        isSaved = saveFrames(self.parent, currentImage, saveSingle=saveSingle, extension=extension, saveRaw=saveRaw, convert8Bit=convert8Bit, signedBits=signedBits)
+
+        # Close the current window
+        if isSaved:
+            self.close()
+
+##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
+## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS
+##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+
+from iscan.display.error_messages import errorMessage
+from iscan.input_output.save_images import saveFrames
