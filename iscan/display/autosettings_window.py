@@ -131,6 +131,11 @@ class autotrackSettingsPanel(qtw.QMainWindow):
             self.particleSizeEntry.setText( str(self.particle_size) )
 
         else:
+            # Turn even numbers into odd ones
+            if particleSizeText % 2 == 0:
+                particleSizeText += 1
+                self.particleSizeEntry.setText( str(particleSizeText) )
+
             self.particle_size = particleSizeText
 
     # -------------------------------------
