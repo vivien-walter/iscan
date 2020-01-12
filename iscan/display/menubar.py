@@ -69,7 +69,7 @@ class menuBar:
         self.imageMenu = self.mainMenu.addMenu("Image")
 
         # Image correction submenu
-        self.imageMenu.imageCorrectionSubmenu = qtw.QMenu("Image Correction", self.parent)
+        self.imageMenu.imageCorrectionSubmenu = qtw.QMenu("Correction", self.parent)
 
         # Background correct the image
         self.imageMenu.imageCorrectionButton = qtw.QAction(
@@ -97,6 +97,21 @@ class menuBar:
 
         self.imageMenu.addSeparator()
 
+        self.imageMenu.addMenu(self.imageMenu.imageCorrectionSubmenu)
+
+        # Image modification submenu
+        self.imageMenu.imageModificationSubmenu = qtw.QMenu("Modification", self.parent)
+
+        # Average frames
+        self.imageMenu.makeSubstackButton = qtw.QAction(
+            "Make Substack", self.parent
+        )
+        self.imageMenu.makeSubstackButton.setStatusTip(
+            "Create a substack of the current stack."
+        )
+        self.imageMenu.makeSubstackButton.triggered.connect(self.callSubstackWindow)
+        self.imageMenu.imageModificationSubmenu.addAction(self.imageMenu.makeSubstackButton)
+
         # Average frames
         self.imageMenu.averageImageButton = qtw.QAction(
             "Average Frames", self.parent
@@ -105,13 +120,13 @@ class menuBar:
             "Average the frames of the image stack."
         )
         self.imageMenu.averageImageButton.triggered.connect(self.callAverageWindow)
-        self.imageMenu.imageCorrectionSubmenu.addAction(self.imageMenu.averageImageButton)
+        self.imageMenu.imageModificationSubmenu.addAction(self.imageMenu.averageImageButton)
 
-        self.imageMenu.addMenu(self.imageMenu.imageCorrectionSubmenu)
+        self.imageMenu.addMenu(self.imageMenu.imageModificationSubmenu)
 
         # Spatial and time calibration of the stack
         self.imageMenu.imageCalibrationButton = qtw.QAction(
-            "Image Calibration", self.parent
+            "Set Scale(s)", self.parent
         )
         self.imageMenu.imageCalibrationButton.setStatusTip(
             "Calibrate the spatial and time resolution of the image stack."
@@ -313,6 +328,19 @@ class menuBar:
         # Open the window if it has not been opened yet
         if self.parent.subWindows['contrast'] is None:
             self.parent.subWindows['contrast'] = contrastSettingsPanel(self.parent)
+        else:
+            errorAlreadyOpen()
+
+    # ---------------------------------------
+    # Display the substrack generation window
+    def callSubstackWindow(self):
+        if self.parent.tabDisplay is False:
+            errorNoImage()
+            return 0
+
+        # Open the window if it has not been opened yet
+        if self.parent.subWindows['time_range'] is None:
+            self.parent.subWindows['time_range'] = timeRangePanel(self.parent)
         else:
             errorAlreadyOpen()
 
@@ -536,6 +564,7 @@ from iscan.display.calibration_window import imageCalibrationPanel
 from iscan.display.center_window import centerPathPanel
 from iscan.display.contrast_window import contrastSettingsPanel
 from iscan.display.correction_window import backgroundCorrectionPanel
+from iscan.display.crop_window import timeRangePanel
 from iscan.display.diffusitivity_window import diffusitivityMeasurementPanel
 from iscan.display.error_messages import errorNoImage, errorAlreadyOpen, errorMessage
 from iscan.display.save_stack_window import saveImagePanel

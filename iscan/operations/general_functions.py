@@ -58,6 +58,29 @@ def string2Float(text):
     else:
         return False
 
+# -------------------------------------
+# Convert a string to a list of indices
+def string2Indices(text):
+
+    # Separate the different ranges
+    allRanges = text.split(',')
+
+    # Process all ranges
+    allIndices = []
+    for input in allRanges:
+
+        # Add single indices directly
+        if '-' not in input:
+            allIndices.append(int(input))
+
+        # Append all indices in the given ranges
+        else:
+            currentLimits = input.split('-')
+            currentRange = [i for i in range( int(currentLimits[0]), int(currentLimits[1]) )]
+            allIndices = allIndices + currentRange
+
+    return np.array(allIndices)
+
 ##-\-\-\-\-\-\-\-\-\
 ## VARIABLE COERCING
 ##-/-/-/-/-/-/-/-/-/
