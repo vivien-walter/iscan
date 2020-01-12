@@ -103,6 +103,11 @@ class autotrackSettingsPanel(qtw.QMainWindow):
 
         # Close the window
         currentRow += 1
+        self.previewButton = qtw.QPushButton("Preview")
+        self.previewButton.clicked.connect(self.previewSettings)
+        self.previewButton.setStatusTip("Preview the position of the particles.")
+        self.settingsActionsLayout.addWidget(self.previewButton, currentRow, 0)
+
         self.closeButton = qtw.QPushButton("Close")
         self.closeButton.clicked.connect(self.close)
         self.closeButton.setStatusTip("Close the current window.")
@@ -189,6 +194,29 @@ class autotrackSettingsPanel(qtw.QMainWindow):
         else:
             self.memory = memoryText
 
+    ##-\-\-\-\-\-\-\-\-\
+    ## PREVIEW GENERATION
+    ##-/-/-/-/-/-/-/-/-/
+
+    # ----------------------------------------------------------------------
+    # Generate a preview of the particle tracking using the current settings
+    def previewSettings(self):
+
+        # Retrieve the current settings
+        self.particle_size = int(self.particleSizeEntry.text())
+        self.min_mass = int(self.minMassEntry.text())
+        brightSpot = self.parent.controlPanel.brightSpotCheckBox.isChecked()
+
+        # Get the current frame
+        currentTab, _ = self.parent.getCurrentTab()
+        currentArray = currentTab.image.stack.frame.raw
+
+        # Find all particles in the image
+        particlePositions = locateParticle(currentArray, invert=not brightSpot, particle_size = self.particle_size, min_mass = self.min_mass)
+
+        # Display the result
+        currentTab.image.updateArrays(preview_tracking=particlePositions)
+
     ##-\-\-\-\-\-\-\-\-\-\
     ## MANAGE THE SETTINGS
     ##-/-/-/-/-/-/-/-/-/-/
@@ -234,3 +262,4 @@ class autotrackSettingsPanel(qtw.QMainWindow):
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
 from iscan.operations.general_functions import string2Int
+from iscan.operations.particle_tracking import locateParticle

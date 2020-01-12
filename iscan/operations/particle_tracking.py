@@ -59,10 +59,10 @@ def selectClosestPath(trajectories, reference, frame):
 
 # -------------------------------------
 # Locate all the particles in the array
-def locateParticle(array, invert=False, particle_size = 45):
+def locateParticle(array, invert=False, particle_size = 45, min_mass = 20):
 
     # Locate the particles
-    particleCollection = tp.locate(array, particle_size, invert=invert)
+    particleCollection = tp.locate(array, particle_size, invert=invert, minmass=min_mass)
 
     particlePosition = np.array( [particleCollection['x'], particleCollection['y']] ).T
 

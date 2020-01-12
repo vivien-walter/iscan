@@ -73,7 +73,7 @@ class imageWidget(qtw.QWidget):
 
     # ------------------------------------------------------
     # Update the arrays and the main display of the software
-    def updateArrays( self ):
+    def updateArrays( self, preview_tracking=None ):
 
         # Extract the required values
         index = self.stack.i_frame
@@ -100,10 +100,15 @@ class imageWidget(qtw.QWidget):
         self.pixmapToDisplay = self.pixmapSource.scaled(width, height)
 
         # Plot the profiles and paths
-        if self.main_parent.docks['tracking'] is not None:
-            self.drawPaths()
-        if self.main_parent.docks['profiling'] is not None:
-            self.drawProfiles()
+        if preview_tracking is None:
+            if self.main_parent.docks['tracking'] is not None:
+                self.drawPaths()
+            if self.main_parent.docks['profiling'] is not None:
+                self.drawProfiles()
+
+        # Plot preview of profiles being tracked
+        else:
+            self.drawParticlePosition(preview_tracking)
 
         # Update the display
         self.scrollAreaImage.setPixmap( self.pixmapToDisplay )
@@ -215,6 +220,31 @@ class imageWidget(qtw.QWidget):
             if i > 0 and drawLine:
                 painter.setPen(qtg.QPen(colour, 2*zoomValue, qtc.Qt.SolidLine))
                 painter.drawLine(x,y,positions[i-1,1]* zoomValue,positions[i-1,2]* zoomValue)
+
+        painter.end()
+
+    # ----------------------------------------
+    # Draw the particle positions in a preview
+    def drawParticlePosition(self, particle_positions):
+
+        # Retrieve the required parameters
+        zoomValue = self.stack.zoom
+
+        # Initialise the painter
+        painter = qtg.QPainter()
+        painter.begin(self.pixmapToDisplay)
+        painter.setRenderHint(qtg.QPainter.Antialiasing)
+
+        # Draw all the different elements
+        for x, y in particle_positions:
+
+            # Rescale the object position
+            x *= zoomValue
+            y *= zoomValue
+
+            # Draw the point on the canvas
+            painter.setPen(qtg.QPen(qtc.Qt.yellow, 6*zoomValue, qtc.Qt.SolidLine))
+            painter.drawPoint(x,y)
 
         painter.end()
 
