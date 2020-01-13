@@ -28,7 +28,9 @@ iSCAN requires the following modules to be installed on your computer:
 
 ### How to install the software
 
-(Write here how to do)
+- Download the source files of the repo on your computer
+
+- Unzip the archive file if necessary
 
 ## User Manual
 
