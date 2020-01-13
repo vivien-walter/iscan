@@ -15,10 +15,16 @@ The software also has the functions to measure the contrast and S:N ratio of typ
 ### Module required
 
 iSCAN requires the following modules to be installed on your computer:
+- PyQt5
 - NumPy
 - SciPy
+- Pandas
+- Matplotlib
+- Seaborn
 - PIMS
-(add all)
+- Pillow
+- Scikit-Images
+- TrackPy
 
 ### How to install the software
 
