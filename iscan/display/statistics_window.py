@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -287,8 +288,8 @@ class profilesAnalysisPanel(qtw.QMainWindow):
         self.statsCanvas.draw()
 
         # Edit the entries
-        self.meanOutput.setText(str(round(np.mean(currentValue), 3)))
-        self.stdOutput.setText(str(round(np.std(currentValue, ddof=1), 3)))
+        self.meanOutput.setText(str(round(bn.mean(currentValue), 3)))
+        self.stdOutput.setText(str(round(bn.nanstd(currentValue, ddof=1), 3)))
         self.spearmanROutput.setText("---")
 
     def plotCorrelation(self, valueNames):

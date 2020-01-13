@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 
 ##-\-\-\-\-\-\-\-\-\-\
@@ -33,14 +34,14 @@ def computeSNR(signal, fittedSignal, parameters, parameterErrors, widthFactor=3,
         noiseProfile = baseProfile[
             (distance < (c - w * widthFactor)) | (distance > (c + w * widthFactor))
         ]
-        noise = np.std(noiseProfile, ddof=1) * 100 / y0
-        noiseErr = yErr * np.std(noiseProfile, ddof=1) * 100 / (y0 ** 2)
+        noise = bn.nanstd(noiseProfile, ddof=1) * 100 / y0
+        noiseErr = yErr * bn.nanstd(noiseProfile, ddof=1) * 100 / (y0 ** 2)
 
         # Compute the SNR
         if brightSpot:
-            snr = (np.amax(fitProfile) - y0) / np.std(noiseProfile, ddof=1)
+            snr = (np.amax(fitProfile) - y0) / bn.nanstd(noiseProfile, ddof=1)
         else:
-            snr = (np.amin(fitProfile) - y0) / np.std(noiseProfile, ddof=1)
+            snr = (np.amin(fitProfile) - y0) / bn.nanstd(noiseProfile, ddof=1)
         snrErr = (contrastErr / noise) + (noiseErr * contrast / (noise ** 2))
 
     else:
@@ -68,16 +69,16 @@ def saveStats(parent, dataArray, parameterNames, numberColumns):
         # Initialise the header
         valueNames = parameterNames.split(",")
         fileText += (
-            "Mean " + valueNames[0] + ":" + str(np.mean(dataArray[:, 0])) + "\n"
+            "Mean " + valueNames[0] + ":" + str(bn.mean(dataArray[:, 0])) + "\n"
         )
         fileText += (
-            "StDev " + valueNames[0] + ":" + str(np.std(dataArray[:, 0], ddof=1)) + "\n"
+            "StDev " + valueNames[0] + ":" + str(bn.nanstd(dataArray[:, 0], ddof=1)) + "\n"
         )
         fileText += (
-            "Mean " + valueNames[1] + ":" + str(np.mean(dataArray[:, 1])) + "\n"
+            "Mean " + valueNames[1] + ":" + str(bn.mean(dataArray[:, 1])) + "\n"
         )
         fileText += (
-            "StDev " + valueNames[1] + ":" + str(np.std(dataArray[:, 1], ddof=1)) + "\n"
+            "StDev " + valueNames[1] + ":" + str(bn.nanstd(dataArray[:, 1], ddof=1)) + "\n"
         )
 
         # Get the linear correlation estimator
@@ -89,8 +90,8 @@ def saveStats(parent, dataArray, parameterNames, numberColumns):
 
     # Initialise the header for a single distribution
     else:
-        fileText += "Mean:" + str(np.mean(dataArray)) + "\n"
-        fileText += "StDev:" + str(np.std(dataArray, ddof=1)) + "\n"
+        fileText += "Mean:" + str(bn.mean(dataArray)) + "\n"
+        fileText += "StDev:" + str(bn.nanstd(dataArray, ddof=1)) + "\n"
 
     # File the rest of the file
     fileText += parameterNames + '\n'
@@ -114,8 +115,8 @@ def allStats(parent, dataDict):
     for param in parameters:
         currentArray = [
             param,
-            str(np.mean(dataDict[param])),
-            str(np.std(dataDict[param], ddof=1)),
+            str(bn.mean(dataDict[param])),
+            str(bn.nanstd(dataDict[param], ddof=1)),
         ]
         for param2 in parameters:
             currentArray.append(

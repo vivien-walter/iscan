@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 
 ##-\-\-\-\-\-\-\-\-\
@@ -60,11 +61,11 @@ def backgroundCorrection(
     # Calculate the average image
     if averageType == "median":
         averageArray = np.reshape(
-            np.median(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
+            bn.median(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
         )
     elif averageType == "mean":
         averageArray = np.reshape(
-            np.mean(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
+            bn.mean(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
         )
     correctionArray = np.repeat(averageArray, array.shape[0], axis=0)
 

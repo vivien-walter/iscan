@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 from scipy.optimize import curve_fit
 import threading
@@ -301,7 +302,7 @@ def initializeParameters(x, y, brightSpot=True):
 
     # Offset calculation
     scanLim = int(y.shape[0] / 8)
-    offset = np.mean(np.array([y[0:scanLim], y[-scanLim::]]))
+    offset = bn.mean(np.array([y[0:scanLim], y[-scanLim::]]))
 
     # Calculation for bright spot
     if brightSpot:

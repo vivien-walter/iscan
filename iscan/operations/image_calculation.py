@@ -1,3 +1,4 @@
+import bottleneck as bn
 from math import ceil, floor
 import numpy as np
 from skimage import exposure, img_as_uint, img_as_float
@@ -45,9 +46,9 @@ def runningFrameAverage(stackArray, n_frames, use_median=False, all_frames=True,
 
             # Do the required average
             if use_median:
-                averagedArray = np.median( currentStack, axis=0 )
+                averagedArray = bn.median(currentStack, axis=0)
             else:
-                averagedArray = np.mean( currentStack, axis=0 )
+                averagedArray = bn.mean(currentStack, axis=0 )
 
             # Append the array to the output array
             outputArray.append( np.copy(averagedArray) )
@@ -89,9 +90,9 @@ def groupFrameAverage(stackArray, n_frames, use_median=False, all_frames=True):
 
             # Do the required average
             if use_median:
-                averagedArray = np.median( currentStack, axis=0 )
+                averagedArray = bn.median( currentStack, axis=0 )
             else:
-                averagedArray = np.mean( currentStack, axis=0 )
+                averagedArray = bn.mean( currentStack, axis=0 )
 
             # Append the array to the output array
             outputArray.append( np.copy(averagedArray) )

@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as  np
 import pandas as pd
 import trackpy as tp
@@ -308,8 +309,8 @@ def calculateDiffusion(path_dictionnary, ignore_index, do_all=False):
         all_msd_error = None
     else:
         all_msd = np.array(all_msd).T
-        all_msd_error = np.std(all_msd, axis=1, ddof=1)
-        all_msd = np.mean(all_msd, axis=1)
+        all_msd_error = bn.nanstd(all_msd, axis=1, ddof=1)
+        all_msd = bn.mean(all_msd, axis=1)
 
     # Fit the general MSD
     fitParam, fitError = fitMSD(all_tau, all_msd, all_msd_error)

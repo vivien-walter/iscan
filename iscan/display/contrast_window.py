@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -272,8 +273,8 @@ class contrastSettingsPanel(qtw.QMainWindow):
 
         # Calculate the pixel mean value and standard deviation
         logPValues = np.log10(np.copy(self.pixelValues))
-        mean = np.mean(logPValues)
-        stdev = np.std(logPValues)
+        mean = bn.mean(logPValues)
+        stdev = bn.nanstd(logPValues)
 
         # Determine the limits based on the mean and standard deviation
         currentAttempt = self.autoContrastAttempt + 1

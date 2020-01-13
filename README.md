@@ -10,6 +10,8 @@
 
 The software also has the functions to measure the contrast and S:N ratio of typical iSCAT samples and enables quick-and-dirty particle tracking using TrackPy.
 
+The software has been developed by [Vivien WALTER](http://www.vwalter.fr "Vivien Walter's website") in the [Mark I. Wallace group](http://markwallace.org "MIW Group's website") of the King's College London.
+
 ## Installation
 
 ### Module required
@@ -45,12 +47,11 @@ python3 cli.py
 
 - It is not recommended to start the software using **Jupyter** notebooks.
 
-
 ### Accessing image files and folders
 
 #### - Opening an image stack
 
-To open an image stack, use the **File/Open.../** menu and select wether you want to open an image stack (.tiff ou .gif file) or a folder of individual images.
+To open an image stack, use the **File/Open.../** menu and select wether you want to open an image stack (.tiff ou .gif file) or a folder of individual images; by respectively
 
 Upon starting, you can simply drag & drop the stack or folder on the main window to directly open it.
 
@@ -58,7 +59,7 @@ The function to open image stack has not been implemented yet.
 
 #### - Saving an image stack
 
-This function has not been implemented yet.
+To save an image stack or a single frame, use the **File/Save Image** menu.
 
 ### Navigating and editing an image stack
 
