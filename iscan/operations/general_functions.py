@@ -302,7 +302,7 @@ def initializeParameters(x, y, brightSpot=True):
 
     # Offset calculation
     scanLim = int(y.shape[0] / 8)
-    offset = bn.mean(np.array([y[0:scanLim], y[-scanLim::]]))
+    offset = bn.nanmean(np.array([y[0:scanLim], y[-scanLim::]]))
 
     # Calculation for bright spot
     if brightSpot:

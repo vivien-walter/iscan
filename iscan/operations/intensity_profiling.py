@@ -69,13 +69,13 @@ def saveStats(parent, dataArray, parameterNames, numberColumns):
         # Initialise the header
         valueNames = parameterNames.split(",")
         fileText += (
-            "Mean " + valueNames[0] + ":" + str(bn.mean(dataArray[:, 0])) + "\n"
+            "Mean " + valueNames[0] + ":" + str(bn.nanmean(dataArray[:, 0])) + "\n"
         )
         fileText += (
             "StDev " + valueNames[0] + ":" + str(bn.nanstd(dataArray[:, 0], ddof=1)) + "\n"
         )
         fileText += (
-            "Mean " + valueNames[1] + ":" + str(bn.mean(dataArray[:, 1])) + "\n"
+            "Mean " + valueNames[1] + ":" + str(bn.nanmean(dataArray[:, 1])) + "\n"
         )
         fileText += (
             "StDev " + valueNames[1] + ":" + str(bn.nanstd(dataArray[:, 1], ddof=1)) + "\n"
@@ -90,7 +90,7 @@ def saveStats(parent, dataArray, parameterNames, numberColumns):
 
     # Initialise the header for a single distribution
     else:
-        fileText += "Mean:" + str(bn.mean(dataArray)) + "\n"
+        fileText += "Mean:" + str(bn.nanmean(dataArray)) + "\n"
         fileText += "StDev:" + str(bn.nanstd(dataArray, ddof=1)) + "\n"
 
     # File the rest of the file
@@ -115,7 +115,7 @@ def allStats(parent, dataDict):
     for param in parameters:
         currentArray = [
             param,
-            str(bn.mean(dataDict[param])),
+            str(bn.nanmean(dataDict[param])),
             str(bn.nanstd(dataDict[param], ddof=1)),
         ]
         for param2 in parameters:

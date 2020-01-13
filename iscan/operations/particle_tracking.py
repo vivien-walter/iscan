@@ -310,7 +310,7 @@ def calculateDiffusion(path_dictionnary, ignore_index, do_all=False):
     else:
         all_msd = np.array(all_msd).T
         all_msd_error = bn.nanstd(all_msd, axis=1, ddof=1)
-        all_msd = bn.mean(all_msd, axis=1)
+        all_msd = bn.nanmean(all_msd, axis=1)
 
     # Fit the general MSD
     fitParam, fitError = fitMSD(all_tau, all_msd, all_msd_error)

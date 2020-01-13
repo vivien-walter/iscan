@@ -288,7 +288,7 @@ class profilesAnalysisPanel(qtw.QMainWindow):
         self.statsCanvas.draw()
 
         # Edit the entries
-        self.meanOutput.setText(str(round(bn.mean(currentValue), 3)))
+        self.meanOutput.setText(str(round(bn.nanmean(currentValue), 3)))
         self.stdOutput.setText(str(round(bn.nanstd(currentValue, ddof=1), 3)))
         self.spearmanROutput.setText("---")
 

@@ -273,7 +273,7 @@ class contrastSettingsPanel(qtw.QMainWindow):
 
         # Calculate the pixel mean value and standard deviation
         logPValues = np.log10(np.copy(self.pixelValues))
-        mean = bn.mean(logPValues)
+        mean = bn.nanmean(logPValues)
         stdev = bn.nanstd(logPValues)
 
         # Determine the limits based on the mean and standard deviation

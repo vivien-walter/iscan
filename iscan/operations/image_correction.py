@@ -61,11 +61,11 @@ def backgroundCorrection(
     # Calculate the average image
     if averageType == "median":
         averageArray = np.reshape(
-            bn.median(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
+            bn.nanmedian(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
         )
     elif averageType == "mean":
         averageArray = np.reshape(
-            bn.mean(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
+            bn.nanmean(unsignedArray, axis=0), (1, array.shape[1], array.shape[2])
         )
     correctionArray = np.repeat(averageArray, array.shape[0], axis=0)
 

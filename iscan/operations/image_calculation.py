@@ -46,9 +46,9 @@ def runningFrameAverage(stackArray, n_frames, use_median=False, all_frames=True,
 
             # Do the required average
             if use_median:
-                averagedArray = bn.median(currentStack, axis=0)
+                averagedArray = bn.nanmedian(currentStack, axis=0)
             else:
-                averagedArray = bn.mean(currentStack, axis=0 )
+                averagedArray = bn.nanmean(currentStack, axis=0 )
 
             # Append the array to the output array
             outputArray.append( np.copy(averagedArray) )
@@ -90,9 +90,9 @@ def groupFrameAverage(stackArray, n_frames, use_median=False, all_frames=True):
 
             # Do the required average
             if use_median:
-                averagedArray = bn.median( currentStack, axis=0 )
+                averagedArray = bn.nanmedian( currentStack, axis=0 )
             else:
-                averagedArray = bn.mean( currentStack, axis=0 )
+                averagedArray = bn.nanmean( currentStack, axis=0 )
 
             # Append the array to the output array
             outputArray.append( np.copy(averagedArray) )
