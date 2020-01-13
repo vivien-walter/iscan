@@ -6,7 +6,9 @@
 
 **Release date**: 10/02/2020
 
-**iSCAN** is a Python 3-based GUI to analyse the image stacks that have been collected using an iSCAT microscope.
+**iSCAN** is a Python 3-based GUI to analyse the image stacks that have been collected using an iSCAT microscope. Background correction, contrast enhancement and frame averaging tools have been optimised for that type of microscopy.
+
+The software also has the functions to measure the contrast and S:N ratio of typical iSCAT samples and enables quick-and-dirty particle tracking using TrackPy.
 
 ## Installation
 
