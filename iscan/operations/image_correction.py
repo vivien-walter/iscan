@@ -38,6 +38,24 @@ def contrastCorrection(imageStack):
     maxValue = imageStack.max_value
 
     # Rescale the contrast of the image
+    imageArray = np.copy( imageStack.array ) #np.copy( imageStack.frame.raw )
+    contrastArray = rescaleContrast(imageArray, minPV, maxPV, 256)
+
+    # Adjust the intensity for display
+    scaledArray = contrastArray * maxValue
+
+    return scaledArray
+
+# ----------------------------------
+# Rescale the intensity of the image
+def singleContrastCorrection(imageStack):
+
+    # Retrieve the values
+    minPV = imageStack.min_pv
+    maxPV = imageStack.max_pv
+    maxValue = imageStack.max_value
+
+    # Rescale the contrast of the image
     imageArray = np.copy( imageStack.frame.raw )
     contrastArray = rescaleContrast(imageArray, minPV, maxPV, 256)
 

@@ -76,16 +76,11 @@ class imageWidget(qtw.QWidget):
     def updateArrays( self, preview_tracking=None ):
 
         # Extract the required values
-        index = self.stack.i_frame
         zoom = self.stack.zoom
 
         # Update the array
-        self.currentArray = self.stack.array[index]
-        self.stack.frame.raw = np.copy( self.currentArray )
-        self.initialWidth, self.initialHeight = self.currentArray.shape
-
-        # Correct the contrast of the image
-        self.stack.rescaleArray()
+        self.stack.changeFrame()
+        self.initialWidth, self.initialHeight = self.stack.frame.display.shape
 
         # Generate the pixmap
         self.pixmapSource = qtg.QPixmap.fromImage(
@@ -109,6 +104,33 @@ class imageWidget(qtw.QWidget):
         # Plot preview of profiles being tracked
         else:
             self.drawParticlePosition(preview_tracking)
+
+        # Update the display
+        self.scrollAreaImage.setPixmap( self.pixmapToDisplay )
+        self.scrollAreaImage.adjustSize()
+
+    # ------------------------------------------------------
+    # Update the arrays and the main display of the software
+    def updateSingleArray( self ):
+
+        # Extract the required values
+        zoom = self.stack.zoom
+
+        # Update the array
+        self.stack.rescaleFrame()
+        self.initialWidth, self.initialHeight = self.stack.frame.display.shape
+
+        # Generate the pixmap
+        self.pixmapSource = qtg.QPixmap.fromImage(
+            qtg.QImage(ImageQt.ImageQt( self.stack.frame.pil_image ))
+        )
+
+        # Rescale the pixmap
+        width, height = (
+            int(self.initialWidth * zoom),
+            int(self.initialHeight * zoom),
+        )
+        self.pixmapToDisplay = self.pixmapSource.scaled(width, height)
 
         # Update the display
         self.scrollAreaImage.setPixmap( self.pixmapToDisplay )
@@ -296,7 +318,7 @@ class imageWidget(qtw.QWidget):
         x, y = ( np.linspace(p1[1], p2[1], numberPoints) , np.linspace(p1[0], p2[0], numberPoints) )
 
         # Get the profile
-        profile = self.currentArray[x.astype(np.int), y.astype(np.int)]
+        profile = self.stack.frame.raw[x.astype(np.int), y.astype(np.int)]
         self.profile_active.profile = profile
 
         # Generate the radius

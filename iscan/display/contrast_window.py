@@ -153,21 +153,27 @@ class contrastSettingsPanel(qtw.QMainWindow):
         self.cropHistogramButton.setStatusTip(
             "Crop the histogram display based on the actual intensity limits."
         )
-        self.contrastActionsLayout.addWidget(self.autoContrastButton, currentRow, 0)
-        self.contrastActionsLayout.addWidget(self.cropHistogramButton, currentRow, 1)
-
-        # Auto contrast and histogram crop
-        currentRow += 1
         self.resetHistogramButton = qtw.QPushButton("Reset")
         self.resetHistogramButton.clicked.connect(self.resetHistogram)
         self.resetHistogramButton.setStatusTip(
             "Reset the contrast and histogram display to their initial values."
         )
-        self.closeWindowButton = qtw.QPushButton("Close")
+        self.contrastActionsLayout.addWidget(self.autoContrastButton, currentRow, 0,1,2)
+        self.contrastActionsLayout.addWidget(self.cropHistogramButton, currentRow, 2,1,2)
+        self.contrastActionsLayout.addWidget(self.resetHistogramButton, currentRow, 4,1,2)
+
+        # Auto contrast and histogram crop
+        currentRow += 1
+        self.applyHistogramButton = qtw.QPushButton("Apply")
+        self.applyHistogramButton.clicked.connect(self.saveAndQuit)
+        self.applyHistogramButton.setStatusTip(
+            "Apply the change and close the sub-window."
+        )
+        self.closeWindowButton = qtw.QPushButton("Cancel")
         self.closeWindowButton.clicked.connect(self.close)
-        self.closeWindowButton.setStatusTip("Close the current sub-window.")
-        self.contrastActionsLayout.addWidget(self.resetHistogramButton, currentRow, 0)
-        self.contrastActionsLayout.addWidget(self.closeWindowButton, currentRow, 1)
+        self.closeWindowButton.setStatusTip("Close the current sub-window without applying the change.")
+        self.contrastActionsLayout.addWidget(self.applyHistogramButton, currentRow, 0,1,3)
+        self.contrastActionsLayout.addWidget(self.closeWindowButton, currentRow, 3,1,3)
 
         # Display the widget
         self.contrastActionsWidget.setLayout(self.contrastActionsLayout)
@@ -229,7 +235,19 @@ class contrastSettingsPanel(qtw.QMainWindow):
         currentTab, _ = self.parent.getCurrentTab()
         currentTab.image.stack.min_pv = limits[0]
         currentTab.image.stack.max_pv = limits[1]
+        currentTab.image.updateSingleArray()
+
+    # --------------------------------------------
+    # Update the image arrays and close the window
+    def saveAndQuit(self, event=None):
+
+        # Update the contrast of all frames
+        currentTab, _ = self.parent.getCurrentTab()
+        currentTab.image.stack.rescaleArray()
         currentTab.image.updateArrays()
+
+        # Close the window
+        self.close()
 
     ##-\-\-\-\-\-\-\-\-\-\-\-\
     ## CONTROLS CONFIGURATIONS
