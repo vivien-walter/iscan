@@ -28,7 +28,6 @@ class mainGUI(qtw.QMainWindow):
         'contrast':None,
         'average':None,
         'statistics':None,
-        'auto_settings':None,
         'center':None,
         'calibration':None,
         'diffusion':None,

@@ -22,7 +22,7 @@ class trackingControlPanel(qtw.QDockWidget):
 
         # Initialize the parameters
         self.path_index = None
-        self.crop_size = currentTab.image.tracking_settings['crop_size']
+        self.settings = currentTab.image.tracking_settings
 
         # Generate the display
         self.mainWidget = qtw.QWidget()
@@ -30,32 +30,53 @@ class trackingControlPanel(qtw.QDockWidget):
         self.widgetLayout = qtw.QHBoxLayout(self.mainWidget)
         self.widgetLayout.setContentsMargins(0, 0, 0, 0)
 
-        # ------------------------
+        # -----------------------
         # Populate the left panel
-        self.panelWidget = qtw.QWidget()
-        self.panelLayout = qtw.QVBoxLayout(self.panelWidget)
+        self.leftPanelWidget = qtw.QWidget()
+        self.leftPanelLayout = qtw.QVBoxLayout(self.leftPanelWidget)
         # self.panelLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.createTrackType(self.panelLayout)
-        self.panelLayout.addWidget(self.parent.Hseparator())
-        self.createPathSelection(self.panelLayout)
-        self.panelLayout.addWidget(self.parent.Hseparator())
-        self.createDisplayType(self.panelLayout)
-        self.panelLayout.addWidget(self.parent.Hseparator())
-        self.createAutoSettings(self.panelLayout)
+        self.createTrackType(self.leftPanelLayout)
+        self.leftPanelLayout.addWidget(self.parent.Hseparator())
+        self.createPathSelection(self.leftPanelLayout)
+        self.leftPanelLayout.addWidget(self.parent.Hseparator())
+        self.createDisplayType(self.leftPanelLayout)
+        self.leftPanelLayout.addWidget(self.parent.Hseparator())
+        self.createPreviewSettings(self.leftPanelLayout)
 
         # Fill the bottom of the panel with blank
         emptyWidget = qtw.QWidget()
         emptyWidget.setSizePolicy(qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Expanding)
-        self.panelLayout.addWidget(emptyWidget)
+        self.leftPanelLayout.addWidget(emptyWidget)
 
-        self.panelWidget.setLayout(self.panelLayout)
-        self.widgetLayout.addWidget(self.panelWidget)
+        self.leftPanelWidget.setLayout(self.leftPanelLayout)
+        self.widgetLayout.addWidget(self.leftPanelWidget)
+
+        self.widgetLayout.addWidget(self.parent.Vseparator())
+
+        # ------------------------
+        # Populate the right panel
+        self.rightPanelWidget = qtw.QWidget()
+        self.rightPanelLayout = qtw.QVBoxLayout(self.rightPanelWidget)
+        # self.panelLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.createAutoSettings(self.rightPanelLayout)
+
+        # Fill the bottom of the panel with blank
+        emptyWidget = qtw.QWidget()
+        emptyWidget.setSizePolicy(qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Expanding)
+        self.rightPanelLayout.addWidget(emptyWidget)
+
+        self.rightPanelWidget.setLayout(self.rightPanelLayout)
+        self.widgetLayout.addWidget(self.rightPanelWidget)
 
         # Display the panel
         self.mainWidget.setLayout(self.widgetLayout)
         self.setWidget(self.mainWidget)
         self.setFloating(False)
+
+        # Load the parameters
+        self.loadSettings()
 
     # ---------------------------------------------------
     # Reinitialise the display when the window is closed
@@ -96,6 +117,14 @@ class trackingControlPanel(qtw.QDockWidget):
         self.trackingTypeLayout.addWidget(self.automaticTrackingRadiobutton)
         self.typeGroupButton.addButton(self.manualTrackingRadiobutton)
         self.trackingTypeLayout.addWidget(self.manualTrackingRadiobutton)
+
+        # Size for the automatic tracking
+        self.trackingTypeLayout.addWidget(qtw.QLabel("Crop radius (px)"))
+
+        self.cropSizeEntry = qtw.QLineEdit()
+        self.cropSizeEntry.editingFinished.connect(self.checkSizeEntry)
+        self.cropSizeEntry.setStatusTip("Radius of the area to crop for faster processing.")
+        self.trackingTypeLayout.addWidget(self.cropSizeEntry)
 
         # Display the widget
         self.trackingTypeWidget.setLayout(self.trackingTypeLayout)
@@ -268,40 +297,146 @@ class trackingControlPanel(qtw.QDockWidget):
         self.displayTypeWidget.setLayout(self.displayTypeLayout)
         parentWidget.addWidget(self.displayTypeWidget)
 
+    # ------------------------------------
+    # Generate the display for the preview
+    def createPreviewSettings(self, parentWidget):
+
+        # Generate the widget
+        self.previewSettingsWidget = qtw.QWidget()
+        self.previewSettingsLayout = qtw.QVBoxLayout(self.previewSettingsWidget)
+        self.previewSettingsLayout.setContentsMargins(0, 0, 0, 0)
+
+        # Advanced settings
+        self.previewSettingsButton = qtw.QPushButton("Preview")
+        self.previewSettingsButton.clicked.connect(self.previewSettings)
+        self.previewSettingsButton.setStatusTip("Preview the selection on the current using the current settings.")
+        self.previewSettingsLayout.addWidget(self.previewSettingsButton)
+
+        # Display the widget
+        self.previewSettingsWidget.setLayout(self.previewSettingsLayout)
+        parentWidget.addWidget(self.previewSettingsWidget)
+
     #-----------------------------------------------------
     # Generate the display for the tracking type selection
     def createAutoSettings(self, parentWidget):
 
         # Generate the widget
         self.trackingSettingsWidget = qtw.QWidget()
-        self.trackingSettingsLayout = qtw.QGridLayout(self.trackingSettingsWidget)
+        self.trackingSettingsLayout = qtw.QVBoxLayout(self.trackingSettingsWidget)
         self.trackingSettingsLayout.setContentsMargins(0, 0, 0, 0)
 
         # Name of the panel
-        currentRow= 0
-        widgetName = qtw.QLabel("Auto-Tracking Settings")
+        widgetName = qtw.QLabel("Advanced Settings")
         widgetNameFont = qtg.QFont()
         widgetNameFont.setBold(True)
         widgetName.setFont(widgetNameFont)
-        self.trackingSettingsLayout.addWidget(widgetName, currentRow, 0, 1, -1)
+        self.trackingSettingsLayout.addWidget(widgetName)
 
-        # Area to crop for faster processing
+        # Size options
+        self.sizeOptionsGroup = qtw.QGroupBox("Object size")
+        self.sizeOptionsLayout = qtw.QGridLayout(self.sizeOptionsGroup)
+
+        currentRow = 0
+        self.sizeOptionsLayout.addWidget(qtw.QLabel("Min size (px)"), currentRow, 0)
+        self.sizeOptionsLayout.addWidget(qtw.QLabel("Max size (px)"), currentRow, 1)
+
         currentRow += 1
+        self.particleSizeEntry = qtw.QLineEdit()
+        self.particleSizeEntry.editingFinished.connect(self.checkParticleInput)
+        self.particleSizeEntry.setStatusTip("Expected diameter of the particle.")
+        self.sizeOptionsLayout.addWidget(self.particleSizeEntry, currentRow, 0)
 
-        self.trackingSettingsLayout.addWidget(qtw.QLabel("Crop radius (px)"), currentRow, 0)
+        self.maximumSizeEntry = qtw.QLineEdit()
+        self.maximumSizeEntry.editingFinished.connect(self.checkMaxSizeEntry)
+        self.maximumSizeEntry.setStatusTip("Maximum radius-of-gyration of brightness.")
+        self.sizeOptionsLayout.addWidget(self.maximumSizeEntry, currentRow, 1)
 
-        self.cropSizeEntry = qtw.QLineEdit()
-        self.cropSizeEntry.setText( str(self.crop_size) )
-        self.cropSizeEntry.editingFinished.connect(self.checkSizeEntry)
-        self.cropSizeEntry.setStatusTip("Radius of the area to crop for faster processing.")
-        self.trackingSettingsLayout.addWidget(self.cropSizeEntry, currentRow, 1)
-
-        # Advanced settings
         currentRow += 1
-        self.advancedSettingsButton = qtw.QPushButton("ADVANCED SETTINGS")
-        self.advancedSettingsButton.clicked.connect(self.openAdvancedWindow)
-        self.advancedSettingsButton.setStatusTip("Advanced settings for the automatic tracking.")
-        self.trackingSettingsLayout.addWidget(self.advancedSettingsButton, currentRow, 0, 1, -1)
+        self.sizeOptionsLayout.addWidget(qtw.QLabel("Separation (px)"), currentRow, 0)
+
+        currentRow += 1
+        self.separationEntry = qtw.QLineEdit()
+        self.separationEntry.editingFinished.connect(self.checkSeparationEntry)
+        self.separationEntry.setStatusTip("Minimum separation between features.")
+        self.sizeOptionsLayout.addWidget(self.separationEntry, currentRow, 0)
+
+        self.sizeOptionsGroup.setLayout(self.sizeOptionsLayout)
+        self.trackingSettingsLayout.addWidget(self.sizeOptionsGroup)
+
+        # Brightness options
+        self.brightnessOptionsGroup = qtw.QGroupBox("Object brightness")
+        self.brightnessOptionsLayout = qtw.QGridLayout(self.brightnessOptionsGroup)
+
+        currentRow = 0
+        self.brightnessOptionsLayout.addWidget(qtw.QLabel("Min bright (AU)"), currentRow, 0)
+        self.brightnessOptionsLayout.addWidget(qtw.QLabel("Threshold (AU)"), currentRow, 1)
+
+        currentRow += 1
+        self.minimumBrightnessEntry = qtw.QLineEdit()
+        self.minimumBrightnessEntry.editingFinished.connect(self.checkMassEntry)
+        self.minimumBrightnessEntry.setStatusTip("Minimum integrated brightness of the object.")
+        self.brightnessOptionsLayout.addWidget(self.minimumBrightnessEntry, currentRow, 0)
+
+        self.brightnessThresholdEntry = qtw.QLineEdit()
+        self.brightnessThresholdEntry.editingFinished.connect(self.checkThresholdEntry)
+        self.brightnessThresholdEntry.setStatusTip("Clip bandpass result below the threshold value.")
+        self.brightnessOptionsLayout.addWidget(self.brightnessThresholdEntry, currentRow, 1)
+
+        currentRow += 1
+        self.brightnessOptionsLayout.addWidget(qtw.QLabel("Bright ratio (%)"), currentRow, 0)
+
+        currentRow += 1
+        self.percentileEntry = qtw.QLineEdit()
+        self.percentileEntry.editingFinished.connect(self.checkRatioEntry)
+        self.percentileEntry.setStatusTip("Features must have a peak brighter than pixels in the given percentile to be selected.")
+        self.brightnessOptionsLayout.addWidget(self.percentileEntry, currentRow, 0)
+
+        self.brightnessOptionsGroup.setLayout(self.brightnessOptionsLayout)
+        self.trackingSettingsLayout.addWidget(self.brightnessOptionsGroup)
+
+        # Gaussian filter options
+        self.gaussianOptionsGroup = qtw.QGroupBox("Gaussian filter")
+        self.gaussianOptionsLayout = qtw.QVBoxLayout(self.gaussianOptionsGroup)
+
+        self.gaussianOptionsLayout.addWidget(qtw.QLabel("Kernel width (px)"))
+        self.noiseWidthEntry = qtw.QLineEdit()
+        self.noiseWidthEntry.editingFinished.connect(self.checkKernelEntry)
+        self.noiseWidthEntry.setStatusTip("Width of the Gaussian blurring kernel to attenuate noise.")
+        self.gaussianOptionsLayout.addWidget(self.noiseWidthEntry)
+
+        self.gaussianOptionsLayout.addWidget(qtw.QLabel("Smoothing size (px)"))
+        self.smoothingSizeEntry = qtw.QLineEdit()
+        self.smoothingSizeEntry.editingFinished.connect(self.checkSmoothEntry)
+        self.smoothingSizeEntry.setStatusTip("Size of the sides of the square kernel used in rolling average smoothing.")
+        self.gaussianOptionsLayout.addWidget(self.smoothingSizeEntry)
+
+        self.gaussianOptionsGroup.setLayout(self.gaussianOptionsLayout)
+        self.trackingSettingsLayout.addWidget(self.gaussianOptionsGroup)
+
+        # Gaussian filter options
+        self.persistenceGroup = qtw.QGroupBox("Particle persistence")
+        self.persistenceLayout = qtw.QVBoxLayout(self.persistenceGroup)
+
+        self.persistenceLayout.addWidget(qtw.QLabel("Minimum time (frame)"))
+        self.minFrameEntry = qtw.QLineEdit()
+        self.minFrameEntry.editingFinished.connect(self.checkFrameNumberEntry)
+        self.minFrameEntry.setStatusTip("Minimum time a path should last to be considered as a path.")
+        self.persistenceLayout.addWidget(self.minFrameEntry)
+
+        self.persistenceLayout.addWidget(qtw.QLabel("Frame memory (frame)"))
+        self.frameMemoryEntry = qtw.QLineEdit()
+        self.frameMemoryEntry.editingFinished.connect(self.checkMemoryEntry)
+        self.frameMemoryEntry.setStatusTip("Number of frames a particle can disappear to still be considered as a path.")
+        self.persistenceLayout.addWidget(self.frameMemoryEntry)
+
+        self.persistenceGroup.setLayout(self.persistenceLayout)
+        self.trackingSettingsLayout.addWidget(self.persistenceGroup)
+
+        # Reset settings
+        self.resetSettingsButton = qtw.QPushButton("Reset")
+        self.resetSettingsButton.clicked.connect(self.resetSettings)
+        self.resetSettingsButton.setStatusTip("Return the settings to the default values.")
+        self.trackingSettingsLayout.addWidget(self.resetSettingsButton)
 
         # Display the widget
         self.trackingSettingsWidget.setLayout(self.trackingSettingsLayout)
@@ -528,41 +663,9 @@ class trackingControlPanel(qtw.QDockWidget):
         currentTab, _ = self.parent.getCurrentTab()
         currentTab.image.updateArrays()
 
-    ##-\-\-\-\-\-\-\-\-\-\-\-\
-    ## GET TRACKING PARAMETERS
-    ##-/-/-/-/-/-/-/-/-/-/-/-/
-
-    # ---------------------------------------
-    # Check the entry of the crop size widget
-    def checkSizeEntry(self, event=None):
-
-        # Retrieve the text from the entry box
-        cropSizeText = self.cropSizeEntry.text()
-
-        # Check if the value is an integer
-        cropSizeText = string2Int(cropSizeText, convert=False)
-
-        # Reinitialize the value if the input text is not an integer
-        if cropSizeText == False:
-            self.cropSizeEntry.setText( str(self.crop_size) )
-
-        else:
-            self.crop_size = cropSizeText
-
-    # ---------------------------------
-    # Open the advanced settings window
-    def openAdvancedWindow(self, event=None):
-
-        if self.parent.subWindows['auto_settings'] is None:
-
-            # Get the number of frame in the stack
-            currentTab, _ = self.parent.getCurrentTab()
-            settings = currentTab.image.tracking_settings
-
-            self.parent.subWindows['auto_settings'] = autotrackSettingsPanel(self.parent, settings)
-
-        else:
-            errorAlreadyOpen()
+    ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
+    ## RETRIEVE TRACKING INTERACTION
+    ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
     # ----------------------------------
     # Check if the manual tracking is on
@@ -580,30 +683,346 @@ class trackingControlPanel(qtw.QDockWidget):
 
         return canEdit, moveFrame
 
+    ##-\-\-\-\-\-\-\-\-\-\-\-\
+    ## GET TRACKING PARAMETERS
+    ##-/-/-/-/-/-/-/-/-/-/-/-/
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkSizeEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        cropSizeText = self.cropSizeEntry.text()
+
+        # Check if the value is an integer
+        cropSizeText = string2Int(cropSizeText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if cropSizeText == False:
+            self.cropSizeEntry.setText( str(self.settings['crop_size']) )
+
+        else:
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['crop_size'] = cropSizeText
+            self.settings['crop_size'] = cropSizeText
+
+    # -------------------------------------
+    # Check the entry for the particle size
+    def checkParticleInput(self, event=None):
+
+        # Retrieve the text from the entry box
+        particleSizeText = self.particleSizeEntry.text()
+
+        # Check if the value is an integer
+        particleSizeText = string2Int(particleSizeText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if particleSizeText == False:
+            self.particleSizeEntry.setText( str(self.settings['particle_size']) )
+
+        else:
+            # Turn even numbers into odd ones
+            if particleSizeText % 2 == 0:
+                particleSizeText += 1
+                self.particleSizeEntry.setText( str(particleSizeText) )
+
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['particle_size'] = particleSizeText
+            self.settings['particle_size'] = particleSizeText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkMaxSizeEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        maxSizeText = self.maximumSizeEntry.text()
+
+        # Get the current tab
+        currentTab, _ = self.parent.getCurrentTab()
+
+        # Process if None
+        if maxSizeText.lower() == "none":
+            currentTab.image.tracking_settings['max_size'] = None
+            self.settings['max_size'] = None
+
+        else:
+            # Check if the value is an integer
+            maxSizeText = string2Int(maxSizeText, convert=False)
+
+            # Reinitialize the value if the input text is not an integer
+            if maxSizeText == False:
+                self.maximumSizeEntry.setText( str(self.settings['max_size']) )
+
+            else:
+                # Save the results
+                currentTab.image.tracking_settings['max_size'] = maxSizeText
+                self.settings['max_size'] = maxSizeText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkSeparationEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        separationText = self.separationEntry.text()
+
+        # Get the current tab
+        currentTab, _ = self.parent.getCurrentTab()
+
+        # Process if None
+        if separationText.lower() == "none":
+            currentTab.image.tracking_settings['separation'] = None
+            self.settings['separation'] = None
+
+        else:
+            # Check if the value is an integer
+            separationText = string2Int(separationText, convert=False)
+
+            # Reinitialize the value if the input text is not an integer
+            if separationText == False:
+                self.separationEntry.setText( str(self.settings['separation']) )
+
+            else:
+                # Save the results
+                currentTab.image.tracking_settings['separation'] = separationText
+                self.settings['separation'] = separationText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkMassEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        minMassText = self.minimumBrightnessEntry.text()
+
+        # Check if the value is an integer
+        minMassText = string2Int(minMassText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if minMassText == False:
+            self.minimumBrightnessEntry.setText( str(self.settings['min_mass']) )
+
+        else:
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['min_mass'] = minMassText
+            self.settings['min_mass'] = minMassText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkThresholdEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        thresholdText = self.brightnessThresholdEntry.text()
+
+        # Get the current tab
+        currentTab, _ = self.parent.getCurrentTab()
+
+        # Process if None
+        if thresholdText.lower() == "none":
+            currentTab.image.tracking_settings['threshold'] = None
+            self.settings['threshold'] = None
+
+        else:
+            # Check if the value is an integer
+            thresholdText = string2Int(thresholdText, convert=False)
+
+            # Reinitialize the value if the input text is not an integer
+            if thresholdText == False:
+                self.brightnessThresholdEntry.setText( str(self.settings['threshold']) )
+
+            else:
+                # Save the results
+                currentTab.image.tracking_settings['threshold'] = thresholdText
+                self.settings['threshold'] = thresholdText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkRatioEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        ratioText = self.percentileEntry.text()
+
+        # Check if the value is an integer
+        ratioText = string2Int(ratioText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if ratioText == False:
+            self.percentileEntry.setText( str(self.settings['percentile']) )
+
+        else:
+            # Coerce the value
+            ratioText = coerceValue(ratioText, 100)
+            self.percentileEntry.setText( str(ratioText) )
+
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['percentile'] = ratioText
+            self.settings['percentile'] = ratioText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkKernelEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        noiseText = self.noiseWidthEntry.text()
+
+        # Check if the value is an integer
+        noiseText = string2Int(noiseText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if noiseText == False:
+            self.noiseWidthEntry.setText( str(self.settings['noise_size']) )
+
+        else:
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['noise_size'] = noiseText
+            self.settings['noise_size'] = noiseText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkSmoothEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        smoothingText = self.smoothingSizeEntry.text()
+
+        # Get the current tab
+        currentTab, _ = self.parent.getCurrentTab()
+
+        # Process if None
+        if smoothingText.lower() == "none":
+            currentTab.image.tracking_settings['smoothing_size'] = None
+            self.settings['smoothing_size'] = None
+
+        else:
+            # Check if the value is an integer
+            smoothingText = string2Int(smoothingText, convert=False)
+
+            # Reinitialize the value if the input text is not an integer
+            if smoothingText == False:
+                self.smoothingSizeEntry.setText( str(self.settings['smoothing_size']) )
+
+            else:
+                # Save the results
+                currentTab.image.tracking_settings['smoothing_size'] = smoothingText
+                self.settings['smoothing_size'] = smoothingText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkFrameNumberEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        frameNumberText = self.minFrameEntry.text()
+
+        # Check if the value is an integer
+        frameNumberText = string2Int(frameNumberText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if frameNumberText == False:
+            self.minFrameEntry.setText( str(self.settings['min_frame']) )
+
+        else:
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['min_frame'] = frameNumberText
+            self.settings['min_frame'] = frameNumberText
+
+    # ---------------------------------------
+    # Check the entry of the crop size widget
+    def checkMemoryEntry(self, event=None):
+
+        # Retrieve the text from the entry box
+        memoryText = self.frameMemoryEntry.text()
+
+        # Check if the value is an integer
+        memoryText = string2Int(memoryText, convert=False)
+
+        # Reinitialize the value if the input text is not an integer
+        if memoryText == False:
+            self.frameMemoryEntry.setText( str(self.settings['memory']) )
+
+        else:
+            # Save the results
+            currentTab, _ = self.parent.getCurrentTab()
+            currentTab.image.tracking_settings['memory'] = memoryText
+            self.settings['memory'] = memoryText
+
     # ----------------------------------------
     # Return parameters for automatic tracking
-    def getAutomaticParameters(self):
+    def loadSettings(self):
 
         # Get the number of frame in the stack
         currentTab, _ = self.parent.getCurrentTab()
-        settings = currentTab.image.tracking_settings
+        self.settings = currentTab.image.tracking_settings
 
-        # Write the dictionnary
-        trackingOptions = {
-        'crop_size': int(self.cropSizeEntry.text()),
-        'particle_size': settings['particle_size'],
-        'min_mass': settings['min_mass'],
-        'min_frame': settings['min_frame'],
-        'memory': settings['memory']
-        }
+        # Load settings for crop
+        self.cropSizeEntry.setText( str(self.settings['crop_size']) )
 
-        return trackingOptions
+        # Load settings for size
+        self.particleSizeEntry.setText( str(self.settings['particle_size']) )
+        self.maximumSizeEntry.setText( str(self.settings['max_size']) )
+        self.separationEntry.setText( str(self.settings['separation']) )
+
+        # Load settings for brightness
+        self.minimumBrightnessEntry.setText( str(self.settings['min_mass']) )
+        self.brightnessThresholdEntry.setText( str(self.settings['threshold']) )
+        self.percentileEntry.setText( str(self.settings['percentile']) )
+
+        # Load settings for the filter
+        self.noiseWidthEntry.setText( str(self.settings['noise_size']) )
+        self.smoothingSizeEntry.setText( str(self.settings['smoothing_size']) )
+
+        # Load settings for the memory
+        self.minFrameEntry.setText( str(self.settings['min_frame']) )
+        self.frameMemoryEntry.setText( str(self.settings['memory']) )
+
+    # ------------------------------------------------------
+    # Load the default parameters for the automatic tracking
+    def resetSettings(self):
+
+        # Load the tab and settings
+        currentTab, _ = self.parent.getCurrentTab()
+        currentTab.image.tracking_settings = currentTab.image.default_settings.copy()
+
+        # Reset the settings
+        self.loadSettings()
+
+    ##-\-\-\-\-\-\-\-\-\
+    ## PREVIEW GENERATION
+    ##-/-/-/-/-/-/-/-/-/
+
+    # ----------------------------------------------------------------------
+    # Generate a preview of the particle tracking using the current settings
+    def previewSettings(self):
+
+        # Retrieve the current settings
+        brightSpot = self.parent.controlPanel.brightSpotCheckBox.isChecked()
+
+        # Get the current frame
+        currentTab, _ = self.parent.getCurrentTab()
+        currentArray = currentTab.image.stack.frame.raw
+
+        # Find all particles in the image
+        particlePositions = locateParticle(currentArray,
+        invert=not brightSpot,
+        particle_size = self.settings['particle_size'],
+        min_mass = self.settings['min_mass'],
+        max_size = self.settings['max_size'],
+        separation = self.settings['separation'],
+        noise_size = self.settings['noise_size'],
+        smoothing_size = self.settings['smoothing_size'],
+        threshold = self.settings['threshold'],
+        percentile = self.settings['percentile']
+        )
+
+        # Display the result
+        currentTab.image.updateArrays(preview_tracking=particlePositions)
 
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
 ## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-from iscan.display.autosettings_window import autotrackSettingsPanel
 from iscan.display.error_messages import errorAlreadyOpen
-from iscan.operations.general_functions import calculateIndex, string2Int
-from iscan.operations.particle_tracking import trajectory, completePath, saveTrajectoryInFile
+from iscan.operations.general_functions import calculateIndex, string2Int, coerceValue
+from iscan.operations.particle_tracking import trajectory, completePath, saveTrajectoryInFile, locateParticle

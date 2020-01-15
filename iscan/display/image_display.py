@@ -33,7 +33,13 @@ class imageWidget(qtw.QWidget):
         self.tracking_settings = {
         'crop_size': 200,
         'particle_size':45,
+        'max_size':None,
+        'separation':None,
         'min_mass':20,
+        'threshold':None,
+        'percentile':64,
+        'noise_size':1,
+        'smoothing_size':None,
         'min_frame':10,
         'memory':3
         }
