@@ -71,10 +71,10 @@ def locateParticle(array, invert=False, particle_size = 45, min_mass = 20, max_s
 
 # -------------------------------
 # Find all the paths in the array
-def locatePath(array, particle_size=45, min_mass = 20, min_frame = 10, memory=3, invert=False):
+def locatePath(array, memory=3, min_frame=1, invert=False, particle_size = 45, min_mass = 20, max_size=None, separation=None, noise_size=1, smoothing_size=None, threshold=None, percentile=64):
 
     # Process all the frames
-    particleCollection = tp.batch(array[:], particle_size, minmass=min_mass, invert=invert)
+    particleCollection = tp.batch(array[:], particle_size, invert=invert, minmass=min_mass, maxsize=max_size, separation=separation, noise_size=noise_size, smoothing_size=smoothing_size, threshold=threshold, percentile=percentile)
 
     filteredCollection = tp.link_df(particleCollection, particle_size, memory=memory)
     filteredCollection = tp.filter_stubs(filteredCollection, min_frame)
@@ -83,14 +83,14 @@ def locatePath(array, particle_size=45, min_mass = 20, min_frame = 10, memory=3,
 
 # ----------------------------------------
 # Find a single particle in a reduced area
-def findSingleParticle(array, position, crop_size=50, particle_size=45, invert=False):
+def findSingleParticle(array, position, crop_size=50, invert=False, particle_size = 45, min_mass = 20, max_size=None, separation=None, noise_size=1, smoothing_size=None, threshold=None, percentile=64):
 
     # Crop the array to reduce the calculation time
     croppedArray = cropImage(position, array, size=crop_size)
     center = (np.array(croppedArray.shape) / 2).astype(int)
 
     # Locate all particles in the area
-    particlesPosition = locateParticle(croppedArray, particle_size=particle_size, invert=invert)
+    particlesPosition = locateParticle(croppedArray, particle_size=particle_size, invert=invert, minmass=min_mass, maxsize=max_size, separation=separation, noise_size=noise_size, smoothing_size=smoothing_size, threshold=threshold, percentile=percentile)
 
     # Convert to absolute coordinates
     particlesPosition = np.rint(particlesPosition - center + position).astype(int)
@@ -111,7 +111,6 @@ def completePath(path, number_frames):
 
     # Take the very first position of the array as reference
     initial_position = np.array([ path.positions[0] ])
-
     # Complete the first points if missing
     if path.positions[0,0] != 0:
 
@@ -119,7 +118,7 @@ def completePath(path, number_frames):
         for i in range( path.positions[0,0] ):
             initial_position[0,0] = i
             path.positions = np.append(path.positions, np.copy(initial_position), axis=0)
-        path.positions = np.sort( path.positions.view('i8,i8,i8'), order=['f0'], axis=0 ).view(np.int)
+        path.positions = path.positions[path.positions[:,0].argsort()]
 
     # Loop over all the points in the path
     for i in range(number_frames):
@@ -128,7 +127,7 @@ def completePath(path, number_frames):
         if i not in path.positions[:,0]:
             initial_position[0,0] = i
             path.positions = np.append(path.positions, np.copy(initial_position), axis=0)
-            path.positions = np.sort( path.positions.view('i8,i8,i8'), order=['f0'], axis=0 ).view(np.int)
+            path.positions = path.positions[path.positions[:,0].argsort()]
 
         # Move the reference position
         initial_position = np.array([ path.positions[i] ])
@@ -166,6 +165,12 @@ def generateAutomaticSinglePath(array, path, position, frame, tracking_option=No
         particle_size = 45
         invert = False
         min_mass = 20
+        max_size = None
+        separation = None
+        noise_size = 1
+        smoothing_size = None
+        threshold = None
+        percentile = 64
         min_frame = 10
         memory = 3
     else:
@@ -173,6 +178,12 @@ def generateAutomaticSinglePath(array, path, position, frame, tracking_option=No
         particle_size = tracking_option['particle_size']
         invert = tracking_option['invert']
         min_mass = tracking_option['min_mass']
+        max_size = tracking_option['max_size']
+        separation = tracking_option['separation']
+        noise_size = tracking_option['noise_size']
+        smoothing_size = tracking_option['smoothing_size']
+        threshold = tracking_option['threshold']
+        percentile = tracking_option['percentile']
         min_frame = tracking_option['min_frame']
         memory = tracking_option['memory']
 
@@ -181,7 +192,7 @@ def generateAutomaticSinglePath(array, path, position, frame, tracking_option=No
     center = (np.array(croppedStack.shape) / 2).astype(int)
 
     # Find all trajectories in the given array
-    all_particles = locatePath(croppedStack, particle_size=particle_size, invert=invert, min_mass = min_mass, min_frame = min_frame, memory=memory)
+    all_particles = locatePath(croppedStack, memory=memory, min_frame=min_frame, invert=invert, particle_size = particle_size, min_mass = min_mass, max_size=max_size, separation=separation, noise_size=noise_size, smoothing_size=smoothing_size, threshold=threshold, percentile=percentile)
 
     # Re-center the particles
     all_particles['x'] = np.rint(all_particles['x'] - center[1] + position[0]).astype(int)

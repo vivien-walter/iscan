@@ -182,6 +182,8 @@ class backgroundCorrectionPanel(qtw.QMainWindow):
         currentTab, _ = self.parent.getCurrentTab()
         currentTab.image.stack.min_pv = .5
         currentTab.image.stack.max_pv = 1.5
+
+        currentTab.image.stack.rescaleArray()
         currentTab.image.updateArrays()
 
         # Close the window at the end

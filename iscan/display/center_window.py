@@ -22,19 +22,21 @@ class centerPathPanel(qtw.QMainWindow):
 
         # Get the main informations
         self.path = self.current_image.path_active
-        self.array = self.current_image.stack.array
-        self.index = self.current_image.stack.i_frame
-        self.max_frame = self.current_image.stack.n_frames-1
+        self.index = 0
+        self.max_frame = self.current_image.path_active.positions.shape[0] - 1
+        self.array = cropStack(self.current_image.stack.array, self.current_image.path_active.positions[:,0])
+        self.d_array = cropStack(self.current_image.stack.d_array, self.current_image.path_active.positions[:,0])
+        self.positions = self.current_image.path_active.positions
 
         # Get the parameters for the crop
         self.image_size = self.current_image.stack.size
-        self.max_size = getMaxCropSize(self.path.positions, self.image_size)
+        self.max_size = getMaxCropSize(self.positions, self.image_size)
         self.box_size = self.max_size
         self.limits = {
-        'x_min': np.amin(self.path.positions[:,1]) - self.max_size,
-        'y_min': np.amin(self.path.positions[:,2]) - self.max_size,
-        'x_max': np.amax(self.path.positions[:,1]) + self.max_size,
-        'y_max': np.amax(self.path.positions[:,2]) + self.max_size
+        'x_min': np.amin(self.positions[:,1]) - self.max_size,
+        'y_min': np.amin(self.positions[:,2]) - self.max_size,
+        'x_max': np.amax(self.positions[:,1]) + self.max_size,
+        'y_max': np.amax(self.positions[:,2]) + self.max_size
         }
 
         # Initialise the subwindow
@@ -182,9 +184,12 @@ class centerPathPanel(qtw.QMainWindow):
     # Generate the cropped array to center
     def generateArray(self):
 
-        # Get the array and crop it
+        # Get the arrays and crop them
         self.current_array = self.array[self.index]
+        self.current_d_array = self.d_array[self.index]
+
         self.cropped_array = self.current_array[self.limits['y_min']:self.limits['y_max']+1,self.limits['x_min']:self.limits['x_max']+1]
+        self.cropped_d_array = self.current_d_array[self.limits['y_min']:self.limits['y_max']+1,self.limits['x_min']:self.limits['x_max']+1]
 
         # Update the image
         self.displayImage()
@@ -193,17 +198,8 @@ class centerPathPanel(qtw.QMainWindow):
     # Display the image in the window
     def displayImage(self):
 
-        # Get the image display properties
-        minPV = self.current_image.stack.min_pv
-        maxPV = self.current_image.stack.max_pv
-        maxValue = self.current_image.stack.max_value
-
-        # Prepare the array
-        temp_array = rescaleContrast(self.cropped_array, minPV, maxPV, 256)
-        self.display_array = temp_array * maxValue
-
         # Prepare the image for display
-        self.display_image = Image.fromarray(self.display_array.astype(np.uint8))
+        self.display_image = Image.fromarray(self.cropped_d_array.astype(np.uint8))
         self.pixmap_source = qtg.QPixmap.fromImage(
             qtg.QImage(ImageQt.ImageQt(self.display_image))
         )
@@ -229,7 +225,7 @@ class centerPathPanel(qtw.QMainWindow):
         self.index = coerceValue(self.index + increment, self.max_frame)
 
         # Update the display
-        self.displayImage()
+        self.generateArray()
 
     def previousFrame(self):
         self.updateFrame(increment=-1)
@@ -252,7 +248,7 @@ class centerPathPanel(qtw.QMainWindow):
         colour = qtc.Qt.yellow
 
         # Check that positions exist
-        positions = self.path.positions
+        positions = self.positions
 
         # Draw all the different elements
         for i, (t, x, y) in enumerate(positions):
@@ -282,13 +278,13 @@ class centerPathPanel(qtw.QMainWindow):
         painter.setRenderHint(qtg.QPainter.Antialiasing)
 
         # Check that positions exist
-        positions = self.path.positions
+        positions = self.positions
 
         # Draw the elements
         for i, (t, x, y) in enumerate(positions):
 
             # Only draw if the current frame is selected
-            if self.index == t:
+            if self.index == i:
 
                 # Correct the position of the particle
                 x -= self.limits['x_min']
@@ -329,7 +325,7 @@ class centerPathPanel(qtw.QMainWindow):
     def processCentering(self):
 
         # Extract the informations
-        path = self.path.positions
+        path = self.positions
         imageArray = self.array
         boxSize = self.box_size
 
@@ -362,7 +358,7 @@ class centerPathPanel(qtw.QMainWindow):
 ## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS
 ##-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 
-from iscan.operations.image_calculation import centerImage
+from iscan.operations.image_calculation import centerImage, cropStack
 from iscan.operations.image_correction import rescaleContrast
 from iscan.operations.general_functions import coerceValue
 from iscan.operations.particle_tracking import getMaxCropSize

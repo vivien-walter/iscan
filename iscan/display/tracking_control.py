@@ -653,7 +653,12 @@ class trackingControlPanel(qtw.QDockWidget):
 
             # Update the display
             self.pathIndexEntry.setText( "0" )
-            self.numberFrameDoneOutput.setText( str(currentImage.path_active.positions.shape[0]) )
+
+            pathPosition = currentImage.path_active.positions
+            if pathPosition is not None:
+                self.numberFrameDoneOutput.setText( str(pathPosition.shape[0]) )
+            else:
+                self.numberFrameDoneOutput.setText( "0" )
 
     # -------------------
     # Refresh the display
