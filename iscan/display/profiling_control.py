@@ -29,6 +29,15 @@ class profilingControlPanel(qtw.QDockWidget):
         self.array = currentTab.image.stack.frame
         self.position = None
 
+        # Estimate limits
+        self.minImageSize = min( currentTab.image.stack.size )
+
+        # Estimate the radius for the profile circle
+        if self.minImageSize >= 120:
+            self.radius = 30
+        else:
+            self.radius = int(self.minImageSize / 4)
+
         # Generate the display
         self.mainWidget = qtw.QWidget()
         self.mainWidget.setMinimumWidth(550)
@@ -163,7 +172,7 @@ class profilingControlPanel(qtw.QDockWidget):
         # Checkbox for the pre-fit display
         self.prefitDisplayCheckBox = qtw.QCheckBox("Show pre-fit")
         self.prefitDisplayCheckBox.setChecked(True)
-        #self.prefitDisplayCheckBox.toggled.connect(self.plotProfile)
+        self.prefitDisplayCheckBox.toggled.connect(self.plotProfile)
         self.prefitDisplayCheckBox.setStatusTip(
             "Display the pre-fitted function based on the given initial fit parameters."
         )
@@ -202,8 +211,8 @@ class profilingControlPanel(qtw.QDockWidget):
         self.lineSettingsLayout.addWidget(self.angleSlider)
 
         self.lengthSlider = qtw.QSlider(qtc.Qt.Horizontal)
-        self.lengthSlider.setMinimum(60)  # All the following values are arbitrary
-        self.lengthSlider.setMaximum(1200)
+        self.lengthSlider.setMinimum(self.radius*2)
+        self.lengthSlider.setMaximum(int(self.minImageSize/2))
         self.lengthSlider.setValue(200)
         self.lengthSlider.valueChanged.connect(self.createProfileLine)
         self.lengthSlider.setStatusTip(
@@ -487,9 +496,11 @@ class profilingControlPanel(qtw.QDockWidget):
         self.angle = self.angleSlider.value()
         self.length = self.lengthSlider.value()
 
-        # Update the line on the image
+        # Retrieve the current tab
         currentTab, _ = self.parent.getCurrentTab()
-        p1, p2 = currentTab.image.createProfile( self.position, self.angle, self.length )
+
+        # Generate the profile
+        p1, p2 = currentTab.image.createProfile( self.position, self.angle, self.length, radius=self.radius )
 
         # Compute the profile and display it
         self.distance, self.profile = currentTab.image.extractProfile(p1, p2, self.position)
@@ -817,6 +828,9 @@ class profilingControlPanel(qtw.QDockWidget):
         # Loop over all frames
         for t in range(numberFrame):
 
+            # Display the progress
+            print('Analysis profile '+str(t+1)+'/'+str(numberFrame))
+
             # Change the frame
             numberFrame = currentTab.image.stack.i_frame = t
             currentTab.image.stack.changeFrame()
@@ -903,6 +917,18 @@ class profilingControlPanel(qtw.QDockWidget):
         # Reset the canvas
         self.profileAxis.clear()
         self.captionCanvas.clear()
+
+        # Update the limits
+        self.minImageSize = min( currentTab.image.stack.size )
+
+        # Estimate the radius for the profile circle
+        if self.minImageSize >= 120:
+            self.radius = 30
+        else:
+            self.radius = int(self.minImageSize / 4)
+
+        self.lengthSlider.setMinimum(self.radius*2)
+        self.lengthSlider.setMaximum(int(self.minImageSize/2))
 
         # Reset the display
         self.currentPositionDisplay.setText("")
