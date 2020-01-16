@@ -194,6 +194,9 @@ class mainGUI(qtw.QMainWindow):
             self.docks["tracking"] = trackingControlPanel("Particle Tracking", self)
             self.addDockWidget(qtc.Qt.RightDockWidgetArea, self.docks["tracking"])
 
+        # Load the informations of the tab
+        self.docks["tracking"].updateOnTabChange()
+
         # Resize if all docks have been closed
         self.resizeWindowOnDockAction()
 
@@ -209,6 +212,9 @@ class mainGUI(qtw.QMainWindow):
         if self.docks["profiling"] is None:
             self.docks["profiling"] = profilingControlPanel("Intensity Profiler", self)
             self.addDockWidget(qtc.Qt.RightDockWidgetArea, self.docks["profiling"])
+
+        # Load the informations of the tab
+        self.docks["profiling"].updateOnTabChange()
 
         # Resize if all docks have been closed
         self.resizeWindowOnDockAction()

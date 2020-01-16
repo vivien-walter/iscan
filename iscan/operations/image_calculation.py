@@ -151,10 +151,10 @@ def centerImage(imageArray, particlePath, frameSize):
 
     # Process everyframe
     newImageArray = []
-    for t, x, y in particlePath:
+    for i, (t, x, y) in enumerate(particlePath):
 
         # Crop the array
-        croppedArray = imageArray[t][y-frameSize:y+frameSize, x-frameSize:x+frameSize]
+        croppedArray = imageArray[i][y-frameSize:y+frameSize, x-frameSize:x+frameSize]
         newImageArray.append( np.copy(croppedArray) )
 
     newImageArray = np.array(newImageArray)
@@ -183,6 +183,22 @@ def changeBitDepth(image, to8bits=True, signedBits=False):
     newImage = newImage.astype(dataType)
 
     return newImage
+
+##-\-\-\-\-\-\-\-\-\
+## STACK MODIFICATION
+##-/-/-/-/-/-/-/-/-/
+
+# ---------------------------------------------------
+# Select only a reduced number of frames in the stack
+def cropStack(imageArray, frame_range):
+
+    # Get a copy of the array
+    newArray = np.copy(imageArray)
+
+    # Select only the desired frames of the array
+    newArray = newArray[frame_range]
+
+    return newArray
 
 ##-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\
 ## IMPORT ISCAN MODULES TO AVOID CYCLIC CONFLICTS

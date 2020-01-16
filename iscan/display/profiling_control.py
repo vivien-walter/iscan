@@ -272,6 +272,16 @@ class profilingControlPanel(qtw.QDockWidget):
         )
         self.fitFunctionLayout.addWidget(self.storeFitButton, currentRow, 0, 1, -1)
 
+        # Button to process all
+        currentRow += 1
+
+        self.fitAllButton = qtw.QPushButton("Process all frames")
+        self.fitAllButton.clicked.connect(self.processAllFrames)
+        self.fitAllButton.setStatusTip(
+            "Fit and store the results for each frame."
+        )
+        self.fitFunctionLayout.addWidget(self.fitAllButton, currentRow, 0, 1, -1)
+
         # Display the widget
         self.fitFunctionWidget.setLayout(self.fitFunctionLayout)
         parentWidget.addWidget(self.fitFunctionWidget)
@@ -414,6 +424,7 @@ class profilingControlPanel(qtw.QDockWidget):
         self.resultsTable.setEditTriggers(qtw.QAbstractItemView.NoEditTriggers)
         self.resultsTable.cellDoubleClicked.connect(self.tableIsDoubleClicked)
         self.resultsTable.itemSelectionChanged.connect(self.tableSelectionChanged)
+        self.resultsTable.setMinimumHeight(175)
         self.resultsDisplayLayout.addWidget(self.resultsTable)
 
         # Save button
@@ -492,7 +503,6 @@ class profilingControlPanel(qtw.QDockWidget):
 
         else:
             self.plotProfile()
-            pass
 
     # -----------------------------------------------------------------------------
     # Plot the intensity profile with the current position, angle and length given
@@ -795,6 +805,28 @@ class profilingControlPanel(qtw.QDockWidget):
 
         # Disable the store profile button
         self.storeFitButton.setEnabled(False)
+
+    # -------------------------------------------
+    # Fit the profile on all frames of the images
+    def processAllFrames(self):
+
+        # Extract the array and its properties
+        currentTab, _ = self.parent.getCurrentTab()
+        numberFrame = currentTab.image.stack.n_frames
+
+        # Loop over all frames
+        for t in range(numberFrame):
+
+            # Change the frame
+            numberFrame = currentTab.image.stack.i_frame = t
+            currentTab.image.stack.changeFrame()
+
+            # Fit the profile
+            self.fitProfile()
+            self.storeProfile()
+
+        # Update the display
+        currentTab.image.updateArrays()
 
     # ------------------------------------------
     # Save the content of the table in a file(s)

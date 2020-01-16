@@ -475,11 +475,6 @@ class menuBar:
                 errorMessage("ERROR: No positions", """There is no position to center on in the selected path.""")
                 return 0
 
-            if currentTab.image.path_active.positions.shape[0] != currentTab.image.stack.n_frames:
-                errorMessage("ERROR: Not enough positions", """The position of the particle should be given on all frame to center the image on it.
-Use the Path Completion function to fill the path.""")
-                return 0
-
             self.parent.subWindows['center'] = centerPathPanel(self.parent)
 
         else:

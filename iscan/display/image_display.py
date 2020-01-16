@@ -482,7 +482,7 @@ Are you sure want to proceed?""")
                     if doAutoTracking:
 
                         # Get the required parameters
-                        trackingParameters = trackingDock.getAutomaticParameters()
+                        trackingParameters = self.tracking_settings
                         trackingParameters['invert'] = not brightSpot
 
                         # Track the particles
