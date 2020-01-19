@@ -27,28 +27,18 @@ def computeSNR(signal, fittedSignal, parameters, parameterErrors, widthFactor=3,
             yErr * (np.amin(fitProfile) - y0) * 100 / (y0 ** 2)
         )
 
-    if c - w * widthFactor > distance[0]:
+    # Compute the noise
+    baseProfile = profile - fitProfile
+    rstd_profile = bn.move_std(baseProfile, 2, ddof=1)
 
-        # Compute the noise
-        baseProfile = profile - fitProfile
-        noiseProfile = baseProfile[
-            (distance < (c - w * widthFactor)) | (distance > (c + w * widthFactor))
-        ]
-        noise = bn.nanstd(noiseProfile, ddof=1) * 100 / y0
-        noiseErr = yErr * bn.nanstd(noiseProfile, ddof=1) * 100 / (y0 ** 2)
+    noise = bn.nanmean(rstd_profile[1:]) * 100 / y0
+    noiseErr = (bn.nanstd(rstd_profile[1:], ddof=1) * 100 / y0) + (
+        yErr * noise / y0
+    )
 
-        # Compute the SNR
-        if brightSpot:
-            snr = (np.amax(fitProfile) - y0) / bn.nanstd(noiseProfile, ddof=1)
-        else:
-            snr = (np.amin(fitProfile) - y0) / bn.nanstd(noiseProfile, ddof=1)
-        snrErr = (contrastErr / noise) + (noiseErr * contrast / (noise ** 2))
-
-    else:
-        noise = 0
-        noiseErr = 0
-        snr = 0
-        snrErr = 0
+    # Compute the SNR
+    snr = abs(contrast) / noise
+    snrErr = (contrastErr / noise) + (noiseErr * abs(contrast) / (noise**2))
 
     return [contrast, noise, snr], [contrastErr, noiseErr, snrErr]
 

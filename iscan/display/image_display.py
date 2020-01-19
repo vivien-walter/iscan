@@ -464,8 +464,10 @@ class imageWidget(qtw.QWidget):
                     generateManualPath(self.path_active, mousePosition, self.stack.i_frame, canEdit=canEdit)
 
                     # Move to the next frame if tolerated
-                    if moveFrame:
+                    if moveFrame == 'next':
                         self.main_parent.controlPanel.nextFrame()
+                    elif moveFrame == 'previous':
+                        self.main_parent.controlPanel.previousFrame()
                     else:
                         self.updateArrays()
 

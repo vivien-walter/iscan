@@ -91,40 +91,47 @@ class trackingControlPanel(qtw.QDockWidget):
 
         # Generate the widget
         self.trackingTypeWidget = qtw.QWidget()
-        self.trackingTypeLayout = qtw.QVBoxLayout(self.trackingTypeWidget)
+        self.trackingTypeLayout = qtw.QGridLayout(self.trackingTypeWidget)
         self.trackingTypeLayout.setContentsMargins(0, 0, 0, 0)
 
         # Name of the panel
+        currentRow = 0
         widgetName = qtw.QLabel("Tracking Type")
         widgetNameFont = qtg.QFont()
         widgetNameFont.setBold(True)
         widgetName.setFont(widgetNameFont)
-        self.trackingTypeLayout.addWidget(widgetName)
+        self.trackingTypeLayout.addWidget(widgetName, currentRow, 0, 1, -1)
 
         # Create the radiobuttons
         self.typeGroupButton = qtw.QButtonGroup(self.trackingTypeWidget)
 
+        # Automatic tracking
+        currentRow += 1
         self.automaticTrackingRadiobutton = qtw.QRadioButton("Automatic")
         self.automaticTrackingRadiobutton.setChecked(True)
         self.automaticTrackingRadiobutton.setStatusTip(
             "Automatic particle tracking on the given area."
         )
+        self.typeGroupButton.addButton(self.automaticTrackingRadiobutton)
+        self.trackingTypeLayout.addWidget(self.automaticTrackingRadiobutton, currentRow, 0)
+
+        # Size for the automatic tracking
+        self.trackingTypeLayout.addWidget(qtw.QLabel("Crop radius (px)"), currentRow, 1)
+
+        # Manual tracking
+        currentRow += 1
         self.manualTrackingRadiobutton = qtw.QRadioButton("Manual")
         self.manualTrackingRadiobutton.setStatusTip(
             "Manual particle tracking."
         )
-        self.typeGroupButton.addButton(self.automaticTrackingRadiobutton)
-        self.trackingTypeLayout.addWidget(self.automaticTrackingRadiobutton)
         self.typeGroupButton.addButton(self.manualTrackingRadiobutton)
-        self.trackingTypeLayout.addWidget(self.manualTrackingRadiobutton)
+        self.trackingTypeLayout.addWidget(self.manualTrackingRadiobutton, currentRow, 0)
 
-        # Size for the automatic tracking
-        self.trackingTypeLayout.addWidget(qtw.QLabel("Crop radius (px)"))
-
+        # Input
         self.cropSizeEntry = qtw.QLineEdit()
         self.cropSizeEntry.editingFinished.connect(self.checkSizeEntry)
         self.cropSizeEntry.setStatusTip("Radius of the area to crop for faster processing.")
-        self.trackingTypeLayout.addWidget(self.cropSizeEntry)
+        self.trackingTypeLayout.addWidget(self.cropSizeEntry, currentRow, 1)
 
         # Display the widget
         self.trackingTypeWidget.setLayout(self.trackingTypeLayout)
@@ -218,14 +225,28 @@ class trackingControlPanel(qtw.QDockWidget):
         )
         self.pathSelectionLayout.addWidget(self.pathModificationCheckBox, currentRow, 0, 1, -1)
 
-        # Path modification
+        # Frame movement selection
         currentRow += 1
-        self.frameChangeCheckBox = qtw.QCheckBox("Move forward on click")
-        self.frameChangeCheckBox.setChecked(True)
-        self.frameChangeCheckBox.setStatusTip(
+        self.moveFrameGroup = qtw.QGroupBox("Move on click")
+        self.moveFrameLayout = qtw.QVBoxLayout(self.moveFrameGroup)
+
+        self.moveNextCheckBox = qtw.QCheckBox("Move forward")
+        self.moveNextCheckBox.setChecked(True)
+        self.moveNextCheckBox.toggled.connect( lambda: self.changeMoveFrame(self.moveNextCheckBox) )
+        self.moveNextCheckBox.setStatusTip(
             "Move to the next frame when the image is clicked."
         )
-        self.pathSelectionLayout.addWidget(self.frameChangeCheckBox, currentRow, 0, 1, -1)
+        self.moveFrameLayout.addWidget(self.moveNextCheckBox)
+
+        self.movePreviousCheckBox = qtw.QCheckBox("Move backward")
+        self.movePreviousCheckBox.toggled.connect( lambda: self.changeMoveFrame(self.movePreviousCheckBox) )
+        self.movePreviousCheckBox.setStatusTip(
+            "Move to the previous frame when the image is clicked."
+        )
+        self.moveFrameLayout.addWidget(self.movePreviousCheckBox)
+
+        self.moveFrameGroup.setLayout(self.moveFrameLayout)
+        self.pathSelectionLayout.addWidget(self.moveFrameGroup, currentRow, 0, 1, -1)
 
         # Display the widget
         self.pathSelectionWidget.setLayout(self.pathSelectionLayout)
@@ -587,6 +608,17 @@ class trackingControlPanel(qtw.QDockWidget):
 
     # --------------------------
     # Change the display in time
+    def changeMoveFrame(self, checkbox):
+
+        # Check all the checkboxes
+        for tmp_checkbox in [self.moveNextCheckBox, self.movePreviousCheckBox]:
+
+            # Deselect the old checkbox if another one is selected
+            if tmp_checkbox.isChecked() and checkbox.isChecked():
+                tmp_checkbox.setChecked( tmp_checkbox == checkbox )
+
+    # --------------------------
+    # Change the display in time
     def changeTimeDisplay(self, checkbox):
 
         # Check all the checkboxes
@@ -684,7 +716,14 @@ class trackingControlPanel(qtw.QDockWidget):
 
         # Retrieve the options
         canEdit = self.pathModificationCheckBox.isChecked()
-        moveFrame = self.frameChangeCheckBox.isChecked()
+
+        # Retrieve the frame movement
+        if self.moveNextCheckBox.isChecked():
+            moveFrame = "next"
+        elif self.movePreviousCheckBox.isChecked():
+            moveFrame = "previous"
+        else:
+            moveFrame = "none"
 
         return canEdit, moveFrame
 
