@@ -90,7 +90,7 @@ def findSingleParticle(array, position, crop_size=50, invert=False, particle_siz
     center = (np.array(croppedArray.shape) / 2).astype(int)
 
     # Locate all particles in the area
-    particlesPosition = locateParticle(croppedArray, particle_size=particle_size, invert=invert, minmass=min_mass, maxsize=max_size, separation=separation, noise_size=noise_size, smoothing_size=smoothing_size, threshold=threshold, percentile=percentile)
+    particlesPosition = locateParticle(croppedArray, particle_size=particle_size, invert=invert, min_mass=min_mass, max_size=max_size, separation=separation, noise_size=noise_size, smoothing_size=smoothing_size, threshold=threshold, percentile=percentile)
 
     # Convert to absolute coordinates
     particlesPosition = np.rint(particlesPosition - center + position).astype(int)
