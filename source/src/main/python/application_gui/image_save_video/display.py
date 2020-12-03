@@ -1,0 +1,118 @@
+import PyQt5.QtCore as qtc
+import PyQt5.QtGui as qtg
+import PyQt5.QtWidgets as qtw
+
+from application_gui.common_gui_functions import CLabel, CHorizontalSeparator
+from application_gui.image_save_video.functions import saveVideoFunctions
+
+##-\-\-\-\-\-\-\-\-\-\-\-\-\-\
+## WINDOW FOR READING METADATA
+##-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+
+class saveVideoWindow(qtw.QMainWindow, saveVideoFunctions):
+    def __init__(self, parent, image_class=None):
+        super(saveVideoWindow, self).__init__(parent)
+
+        # Initialise the subwindow
+        self.parent = parent
+        self.image_class = image_class
+
+        # Generate the window
+        self.mainWidget = qtw.QWidget()
+        self.mainLayout = qtw.QVBoxLayout(self.mainWidget)
+        self.setWindowTitle("Save Video...")
+
+        # Populate the panel
+        self.createSaveFileDisplay(self.mainLayout)
+        self.mainLayout.addWidget(CHorizontalSeparator())
+        self.createSaveContentDisplay(self.mainLayout)
+        self.mainLayout.addWidget(CHorizontalSeparator())
+        self.createUserActions(self.mainLayout)
+
+        # Display the panel
+        self.mainWidget.setLayout(self.mainLayout)
+        self.setCentralWidget(self.mainWidget)
+        self.show()
+        #self.setFixedSize(self.size())
+
+        # Initialise the display
+        #self.updateRadioButton()
+
+    # ---------------------------------------------------
+    # Reinitialise the display when the window is closed
+    def closeEvent(self, event=None):
+        event.accept()
+        self.parent.subWindows['save_frame'] = None
+
+    ##-\-\-\-\-\-\-\-\-\-\
+    ## GENERATE THE DISPLAY
+    ##-/-/-/-/-/-/-/-/-/-/
+
+    # ---------------------------------------
+    # Generate the display to browse the file
+    def createSaveFileDisplay(self, parentWidget):
+
+        # Generate the widget
+        self.saveSettingsWidget = qtw.QWidget()
+        self.saveSettingsLayout = qtw.QGridLayout(self.saveSettingsWidget)
+
+        # Format selection
+        current_row = 0
+        self.saveSettingsLayout.addWidget(CLabel("Frame Rate (FPS):"), current_row, 0)
+        self.frameRateEntry = qtw.QLineEdit()
+        self.frameRateEntry.setText('25')
+        self.saveSettingsLayout.addWidget(self.frameRateEntry, current_row, 1)
+
+        # Display the widget
+        self.saveSettingsWidget.setLayout(self.saveSettingsLayout)
+        parentWidget.addWidget(self.saveSettingsWidget, alignment=qtc.Qt.AlignLeft)
+
+    # ----------------------------------
+    # Generate the controls for the user
+    def createSaveContentDisplay(self, parentWidget):
+
+        # Generate the widget
+        self.contentSelectionWidget = qtw.QWidget()
+        self.contentSelectionLayout = qtw.QVBoxLayout(self.contentSelectionWidget)
+
+        # Save raw data
+        self.saveRawCheckbox = qtw.QCheckBox("Save raw data?")
+        self.contentSelectionLayout.addWidget(self.saveRawCheckbox)
+
+        # Save trajectory and positions
+        self.saveTrajectoryCheckbox = qtw.QCheckBox("Save trajectory?")
+        #self.contentSelectionLayout.addWidget(self.saveTrajectoryCheckbox)
+
+        # Save scale bar
+        self.saveScaleBarCheckbox = qtw.QCheckBox("Save scale bar?")
+        #self.contentSelectionLayout.addWidget(self.saveScaleBarCheckbox)
+
+        # Display the widget
+        self.contentSelectionWidget.setLayout(self.contentSelectionLayout)
+        parentWidget.addWidget(self.contentSelectionWidget)
+
+    # ----------------------------------
+    # Generate the controls for the user
+    def createUserActions(self, parentWidget):
+
+        # Generate the widget
+        self.userActionsWidget = qtw.QWidget()
+        self.userActionsLayout = qtw.QHBoxLayout(self.userActionsWidget)
+
+        # Add the button to open a new file
+        self.saveButton = qtw.QPushButton("Save")
+        self.saveButton.clicked.connect(self.saveInFile)
+        self.saveButton.setStatusTip("Save the current tab.")
+        self.saveButton.setFixedWidth(100)
+        self.userActionsLayout.addWidget(self.saveButton, alignment=qtc.Qt.AlignLeft)
+
+        # Add the button to close
+        self.closeButton = qtw.QPushButton("Close")
+        self.closeButton.clicked.connect(self.close)
+        self.closeButton.setStatusTip("Close the current window.")
+        self.closeButton.setFixedWidth(100)
+        self.userActionsLayout.addWidget(self.closeButton, alignment=qtc.Qt.AlignRight)
+
+        # Display the widget
+        self.userActionsWidget.setLayout(self.userActionsLayout)
+        parentWidget.addWidget(self.userActionsWidget)
