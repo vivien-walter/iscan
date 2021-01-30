@@ -54,6 +54,32 @@ def cropImage(image_array, dimensions, origin=None):
 
     return new_array
 
+# ------------------------------------------
+# Crop a miniature around the given position
+def cropMiniature(position, array, window_size=12):
+
+    # Get the position
+    y, x = position
+    y, x = int(y), int(x)
+
+    # Get the limits
+    ymin, xmin = y - window_size, x - window_size
+    if ymin < 0:
+        ymin = 0
+    if xmin < 0:
+        xmin = 0
+
+    ymax, xmax = y + window_size + 1, x + window_size + 1
+    if ymax >= array.shape[0]:
+        ymax = array.shape[0]
+    if xmax >= array.shape[1]:
+        xmax = array.shape[1]
+
+    # Crop the array
+    cropped_array = array[ymin:ymax, xmin:xmax]
+
+    return cropped_array, (y - ymin, x - xmin)
+
 # ---------------------------------
 # Make the selection from the input
 def getSubstackSelection(selection_text):

@@ -343,6 +343,77 @@ class CRangeSelection(QRangeSlider):
     def __init__(self):
         super(CRangeSelection, self).__init__()
 
+# ---------------
+# Navigation tool
+class CNavigation(qtw.QWidget):
+    def __init__(self):
+        super(CNavigation, self).__init__()
+
+        # User name entry
+        self.layout = qtw.QGridLayout( self )
+
+        # Add the UP button
+        self.upButton = qtw.QPushButton("")
+        self.upButton.setIcon( self.style().standardIcon(getattr(qtg.QStyle, 'SP_ArrowUp')) )
+        self.upButton.setFixedWidth(25)
+        self.upButton.setFixedHeight(25)
+        #self.upButton.clicked.connect(lambda: self._change_index(go_back=True))
+        self.layout.addWidget(self.upButton, 0, 1)
+
+        # Add the LEFT button
+        self.leftButton = qtw.QPushButton("")
+        self.leftButton.setIcon( self.style().standardIcon(getattr(qtg.QStyle, 'SP_ArrowLeft')) )
+        self.leftButton.setFixedWidth(25)
+        self.leftButton.setFixedHeight(25)
+        #self.leftButton.clicked.connect(lambda: self._change_index(go_back=True))
+        self.layout.addWidget(self.leftButton, 1, 0)
+
+        # Add the OK button
+        self.okButton = qtw.QPushButton("")
+        self.okButton.setIcon( self.style().standardIcon(getattr(qtg.QStyle, 'SP_DialogYesButton')) )
+        self.okButton.setFixedWidth(25)
+        self.okButton.setFixedHeight(25)
+        #self.okButton.clicked.connect(lambda: self._change_index(go_back=True))
+        self.layout.addWidget(self.okButton, 1, 1)
+
+        # Add the RIGHT button
+        self.rightButton = qtw.QPushButton("")
+        self.rightButton.setIcon( self.style().standardIcon(getattr(qtg.QStyle, 'SP_ArrowRight')) )
+        self.rightButton.setFixedWidth(25)
+        self.rightButton.setFixedHeight(25)
+        #self.leftButton.clicked.connect(lambda: self._change_index(go_back=True))
+        self.layout.addWidget(self.rightButton, 1, 2)
+
+        # Add the DOWN button
+        self.downButton = qtw.QPushButton("")
+        self.downButton.setIcon( self.style().standardIcon(getattr(qtg.QStyle, 'SP_ArrowDown')) )
+        self.downButton.setFixedWidth(25)
+        self.downButton.setFixedHeight(25)
+        #self.downButton.clicked.connect(lambda: self._change_index(go_back=True))
+        self.layout.addWidget(self.downButton, 2, 1)
+
+        self.setLayout(self.layout)
+        self.setFixedWidth(90)
+        self.setFixedHeight(90)
+        self.setContentsMargins(0, 0, 0, 0)
+
+    ##-\-\-\-\-\-\-\-\-\
+    ## CONNECT FUNCTIONS
+    ##-/-/-/-/-/-/-/-/-/
+
+    # -------------------------------------------
+    # Connect the action to the direction buttons
+    def connectDirections(self, connected_function):
+        self.upButton.clicked.connect(lambda : connected_function((-1,0)))
+        self.leftButton.clicked.connect(lambda : connected_function((0,-1)))
+        self.rightButton.clicked.connect(lambda : connected_function((0,1)))
+        self.downButton.clicked.connect(lambda : connected_function((1,0)))
+
+    # ---------------------------------------
+    # Connect the action to the center button
+    def connectCenter(self, connected_function):
+        self.okButton.clicked.connect(connected_function)
+
 # ---------------------------
 # Define the separator widget
 def CHorizontalSeparator():

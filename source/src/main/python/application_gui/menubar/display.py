@@ -235,11 +235,30 @@ class menuBar (menuBarFileFunctions, menuBarProcessFunctions, menuBarAnalyzeFunc
         self.analyzeMenu.detectParticlesButton.triggered.connect(self.callParticleDetectionWindow)
         self.analyzeMenu.addAction(self.analyzeMenu.detectParticlesButton)
 
+        # Manage Trajectory
+        self.analyzeMenu.trajectorySubMenu = qtw.QMenu('Manage Trajectory...', self.parent)
+
+        # Create a blank trajectory
+        self.analyzeMenu.blankTrajectoryButton = qtw.QAction("New Trajectory", self.parent)
+        self.analyzeMenu.blankTrajectoryButton.setStatusTip("Generate a blank trajectory in the open tab.")
+        self.analyzeMenu.blankTrajectoryButton.triggered.connect(self.callNewTrajectory)
+        self.analyzeMenu.trajectorySubMenu.addAction(self.analyzeMenu.blankTrajectoryButton)
+
         # Load a trajectory in the image class
         self.analyzeMenu.loadTrajectoryButton = qtw.QAction("Load Trajectory", self.parent)
         self.analyzeMenu.loadTrajectoryButton.setStatusTip("Load a trajectory in the open tab.")
         self.analyzeMenu.loadTrajectoryButton.triggered.connect(self.callLoadTrajectory)
-        self.analyzeMenu.addAction(self.analyzeMenu.loadTrajectoryButton)
+        self.analyzeMenu.trajectorySubMenu.addAction(self.analyzeMenu.loadTrajectoryButton)
+
+        self.analyzeMenu.trajectorySubMenu.addSeparator()
+
+        # Edit the tracks
+        self.analyzeMenu.editPathButton = qtw.QAction("Edit Path...", self.parent)
+        self.analyzeMenu.editPathButton.setStatusTip("Edit the path(s) of the trajectory.")
+        self.analyzeMenu.editPathButton.triggered.connect(self.callEditTrajectory)
+        self.analyzeMenu.trajectorySubMenu.addAction(self.analyzeMenu.editPathButton)
+
+        self.analyzeMenu.addMenu(self.analyzeMenu.trajectorySubMenu)
 
         self.analyzeMenu.addSeparator()
 
@@ -302,6 +321,12 @@ class menuBar (menuBarFileFunctions, menuBarProcessFunctions, menuBarAnalyzeFunc
         self.toolsMenu.metadataSubMenu.addAction(self.toolsMenu.searchDataButton)
 
         self.toolsMenu.addMenu(self.toolsMenu.metadataSubMenu)
+
+        # Read a metadata file
+        self.toolsMenu.convertFolderButton = qtw.QAction("Folders to Stacks...", self.parent)
+        self.toolsMenu.convertFolderButton.setStatusTip("Convert folders of images into image stacks.")
+        self.toolsMenu.convertFolderButton.triggered.connect(self.callConvertFolderWindow)
+        self.toolsMenu.addAction(self.toolsMenu.convertFolderButton)
 
     # ---------------------------
     # Generate the WINDOW submenu

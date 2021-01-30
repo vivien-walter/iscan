@@ -26,7 +26,7 @@ class mainGUI(qtw.QMainWindow, mainGUIFunctions):
         self.compiler = compiler
 
         self.title = "iSCAN"
-        self.version = "v1.1"
+        self.version = "v1.2.1"
 
         self.subWindows = {}
         self.docks = {

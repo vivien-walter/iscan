@@ -7,6 +7,7 @@ from application_gui.common_gui_functions import openWindow
 
 from application_gui.metadata_read.display import readMetadataWindow
 from application_gui.metadata_seek.popup import seekMetadataPopup
+from application_gui.tools_converter.display import convertStackWindow
 
 ##-\-\-\-\-\-\-\-\-\-\-\
 ## INTERFACE INTERACTION
@@ -49,3 +50,8 @@ class menuBarToolsFunctions(object):
             # Open the file
             else:
                 openWindow(self.parent, seekMetadataPopup, 'seek_metadata_popup', files_list=data_files)
+
+    # -------------------------
+    # Convert folders to stacks
+    def callConvertFolderWindow(self):
+        openWindow(self.parent, convertStackWindow, 'convert_stacks')

@@ -1,3 +1,5 @@
+import os
+
 import PyQt5.QtCore as qtc
 import PyQt5.QtGui as qtg
 import PyQt5.QtWidgets as qtw
@@ -22,9 +24,15 @@ class aboutHelpWindow(qtw.QMainWindow):
 
         # Get the logo path
         if self.parent.compiler == 'fbs':
-            image = qtg.QPixmap( self.parent.appctxt.get_resource('iscan_logo.png') )
+            image_path = self.parent.appctxt.get_resource('iscan_logo.png')
         else:
-            image = qtg.QPixmap( "resources\iscan_logo.png" )
+            image_path = os.path.join("resources","iscan_logo.png")
+
+            if os.name == 'posix':
+                image_path = resource_path(image_path)
+
+        # Get the image form path
+        image = qtg.QPixmap( image_path )
 
         # Show the logo
         imageWidget = qtw.QLabel()
@@ -36,7 +44,7 @@ class aboutHelpWindow(qtw.QMainWindow):
         self.mainLayout.addWidget(titleText, alignment=qtc.Qt.AlignCenter)
 
         # Show the text
-        aboutText = qtw.QLabel("""Release Date: 03/12/2020
+        aboutText = qtw.QLabel("""Release Date: 30/01/2021
 Author: Vivien Walter
 Contact: walter.vivien@gmail.com
 
@@ -63,3 +71,8 @@ https://github.com/vivien-walter/iscan""")
     def closeEvent(self, event=None):
         event.accept()
         self.parent.subWindows['about'] = None
+
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
